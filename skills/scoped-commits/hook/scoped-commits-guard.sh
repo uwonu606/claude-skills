@@ -9,7 +9,7 @@
 # 스킬이 분할안 승인을 받을지 판단하는 데 쓴다. PreToolUse 는 명령 실행
 # 전에 돌므로, 스킬이 그 파일을 cat 하는 시점에는 이미 최신이다.
 #
-# 흔한 경로(git commit 이 아닌 모든 호출)는 서브프로세스 없이 끝난다.
+# 흔한 경로(commit 이라는 글자가 없는 모든 호출)는 서브프로세스 없이 끝난다.
 
 IFS= read -r -d '' input
 
@@ -28,22 +28,32 @@ esac
 printf '%s' "$mode" > "$HOME/.claude/.scoped-commits-mode" 2>/dev/null || true
 
 [[ $compact == *'"tool_name":"Bash"'* ]] || exit 0
-[[ $compact == *'gitcommit'* ]] || exit 0
+# `git -C <경로> commit` 은 공백을 지우면 git-C/x/ycommit 이 되어 gitcommit 을
+# 찾는 검사로는 걸리지 않는다. commit 이라는 글자만 보고 넘긴다.
+[[ $compact == *commit* ]] || exit 0
 
 printf '%s' "$input" | python3 -S -c '
 import json, re, shlex, sys
 
+DENY_TAIL = """이 변경은 /scoped-commits 스킬로 커밋해야 합니다. 이 스킬은 사용자만 호출할 수 있으므로, 명령을 고쳐 다시 시도하지 말고 사용자에게 실행을 요청하십시오."""
+
 DENY_SCOPE = """커밋이 거부되었습니다.
 이 저장소는 커밋 제목에 type 접두어(feat, fix, docs, chore, refactor, style, test, build, ci, perf, revert)를 쓰지 않습니다.
 제목은 `<scope>: <설명>` 형태이고, scope 는 그 코드가 하는 일의 이름입니다 — 소문자 kebab-case 이며 파일명·디렉토리명을 그대로 쓰지 않습니다.
-이 변경은 /scoped-commits 스킬로 커밋해야 합니다. 이 스킬은 사용자만 호출할 수 있으므로, 제목만 고쳐 다시 시도하지 말고 사용자에게 실행을 요청하십시오."""
+""" + DENY_TAIL
 
 DENY_UNSEEN = """커밋이 거부되었습니다.
 훅이 제목을 확인할 수 없습니다. 메시지를 `-m` 이나 heredoc(`git commit -F -`)으로 주십시오.
-`-F <파일>` 이나 에디터로는 명령줄에 제목이 없어 검사할 수 없습니다."""
+`-F <파일>` 이나 에디터로는 명령줄에 제목이 없어 검사할 수 없습니다.
+""" + DENY_TAIL
 
 TYPES = ("feat", "fix", "docs", "chore", "refactor", "style",
          "test", "build", "ci", "perf", "revert")
+
+# 값을 따로 받는 git 전역 옵션. 이것들 뒤의 토큰은 하위명령이 아니다.
+GLOBAL_VALUE_OPTS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace",
+                     "--exec-path", "--config-env", "--super-prefix"}
+SHELL_OPS = {"&&", "||", ";", "|", ">", ">>", "<", "2>", "&"}
 
 def deny(reason):
     print(json.dumps({"hookSpecificOutput": {
@@ -53,6 +63,29 @@ def deny(reason):
     }}, ensure_ascii=False))
     sys.exit(0)
 
+def commit_argv(command):
+    """명령줄 전체에서 git ... commit 의 인자 목록을 꺼낸다. 없으면 None."""
+    try:
+        toks = shlex.split(command)
+    except ValueError:
+        return None
+    # 셸 문법이 앞에 붙은 토큰에서 git 을 드러낸다: (git, {git
+    toks = [t.lstrip("({") for t in toks]
+    for i, t in enumerate(toks):
+        if t != "git" and not t.endswith("/git"):
+            continue
+        j = i + 1
+        while j < len(toks) and toks[j].startswith("-"):
+            j += 2 if toks[j] in GLOBAL_VALUE_OPTS else 1
+        if j < len(toks) and toks[j] == "commit":
+            rest = []
+            for a in toks[j + 1:]:
+                if a in SHELL_OPS:
+                    break
+                rest.append(a)
+            return rest
+    return None
+
 try:
     payload = json.load(sys.stdin)
 except Exception:
@@ -61,15 +94,8 @@ command = (payload.get("tool_input") or {}).get("command")
 if not isinstance(command, str):
     sys.exit(0)
 
-# 파이프·연쇄 안에서 git commit 조각만 꺼낸다.
-segments = [s.strip() for s in re.split(r"&&|\|\||;|\n", command)]
-seg = next((s for s in segments if re.match(r"^git\s+(-\S+\s+|--\S+(=\S+)?\s+)*commit\b", s)), None)
-if seg is None:
-    sys.exit(0)
-
-try:
-    argv = shlex.split(seg)
-except ValueError:
+argv = commit_argv(command)
+if argv is None:
     sys.exit(0)
 
 # 기존 메시지를 재사용하는 형태는 검사 대상이 아니다.
@@ -85,7 +111,15 @@ for i, a in enumerate(argv):
     if a.startswith("--message="):
         title = a.split("=", 1)[1]
         break
-    if a.startswith("-m") and len(a) > 2:
+    # 묶인 단축 플래그도 값을 싣는다: -am, -sm. -m 은 묶음의 마지막이어야 한다.
+    if re.match(r"^-[A-Za-z]*m$", a):
+        if len(a) > 2 and i + 1 < len(argv):
+            title = argv[i + 1]
+            break
+        if a == "-m" and i + 1 < len(argv):
+            title = argv[i + 1]
+            break
+    if a.startswith("-m") and len(a) > 2 and not a[2:].startswith("-"):
         title = a[2:]
         break
     if a in ("-F", "--file") and i + 1 < len(argv) and argv[i + 1] == "-":
