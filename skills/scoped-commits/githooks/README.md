@@ -53,12 +53,17 @@ macOS 는 GPLv2 에 묶여 **bash 3.2.57**(2007년)을 싣는다. `#!/usr/bin/en
 
 bash 3.2 컨테이너로 실측했다.
 
-- `commit-msg` 판정 16건이 bash 5.3 과 **완전히 같다** — type 접두어 4종, 접두어 없음, 대문자 scope, 콜론 뒤 공백 없음, 짧은 scope, 특수문자 scope, Merge·Revert·`fixup!`·주석 통과.
-- `dispatch` 3건 통과 — 저장소 훅 거부, 레거시 훅 거부, 둘 다 만족 시 통과.
+- 스크립트 5개(`.githooks/` 두 벌, 이 디렉토리의 `commit-msg`·`dispatch`·`install-dispatch.sh`)가 `bash -n` 을 통과한다.
+- `commit-msg` 판정 21건이 bash 5.3 과 **완전히 같다** — type 접두어 4종과 `type(scope):` 형태, 접두어 없음, 대문자 scope, 콜론 뒤 공백 없음, 하이픈으로 끝나는 scope, 언더스코어·점 scope, 설명 없음까지 12건 거부. 한 글자 scope, 하이픈 scope, 숫자 섞인 scope, Merge·Revert·`fixup!`·`squash!`·주석·빈 제목 9건 통과.
+- `dispatch` — 워킹트리에서 `.githooks/` 다음 `.git/hooks/` 순서로 부르고 첫 훅의 종료코드(7)를 그대로 내보내며 둘째를 부르지 않는다. bare 저장소(toplevel 없음)에서도 `<gitdir>/hooks/` 를 부르고, stdin 페이로드가 ref 1·2·3개 모두 **바이트 그대로** 자식에게 간다.
+- `install-dispatch.sh` — 설치·최신·갱신 3상태가 각각 맞고, 훅 22종이 깔리고, `--uninstall` 이 디렉토리와 `core.hooksPath` 를 되돌린다.
+- `pre-commit` 불변 4건 — 정상 트리 통과, commit-msg 두 벌 어긋남 거부, type 목록 어긋남 거부, 배포본이 없으면 검사 생략.
 
 bash 4 이상에서만 되는 구문(대소문자 변환 `${v,,}`, 연관배열, `mapfile`, nameref, `&>>`)은 쓰지 않았다.
 
-Windows 는 확인하지 않았다. Git for Windows 는 자체 bash 를 싣지만 심볼릭 링크 처리가 다르므로, `install-dispatch.sh` 의 `ln -sf` 가 그대로 되는지는 미검증이다.
+이 컨테이너의 `sed` 는 busybox 라 GNU 가 아니다. 그것만으로 **macOS 의 BSD sed 에서 도는 증명은 되지 않는다** — 비-GNU sed 하나에서 돌았다는 것까지가 실측이다. bash 버전 차이가 이 스크립트들의 실질적인 위험이라 거기에 맞춰 골랐다.
+
+Windows 실기는 확인하지 않았다. Git for Windows(MSYS)의 `ln` 이 심볼릭 링크 대신 **복사**로 동작하는 경우를 스텁으로 재현해, 설치가 끝까지 돌고 훅 22개가 전부 디스패처와 같은 내용으로 깔리는 것까지는 확인했다. Git for Windows 가 실제로 그 동작을 하는지, 한다면 어느 조건에서인지는 미검증이다.
 
 ## 무엇을 검사하는가
 
