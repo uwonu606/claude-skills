@@ -37,4 +37,25 @@ if git cat-file -e ":$a" 2>/dev/null && git cat-file -e ":$b" 2>/dev/null; then
   fi
 fi
 
+# type 접두어 목록은 훅이 거부에 쓰고, messages.md 의 과거 scope 조회 스니펫이
+# 같은 목록으로 걸러 낸다. 둘 다 실행되는 코드라 어긋나면 조회 결과에 type 이
+# 섞여 들어오고, 그것이 다음 커밋의 scope 후보가 된다.
+c=skills/scoped-commits/messages.md
+
+if git cat-file -e ":$a" 2>/dev/null && git cat-file -e ":$c" 2>/dev/null; then
+  hook_types=$(git show ":$a" | sed -n "s/^TYPES='\(.*\)'.*/\1/p")
+  doc_types=$(git show ":$c" | grep -F 'grep -vE' | sed -e "s/.*'^(//" -e "s/)\\$'.*//")
+
+  # 한쪽이 비면 형식이 바뀐 것이다. 지킬 약속이 없으므로 검사하지 않는다.
+  if [ -n "$hook_types" ] && [ -n "$doc_types" ] && [ "$hook_types" != "$doc_types" ]; then
+    fail "type 목록이 어긋났습니다." \
+         "  $a" \
+         "    $hook_types" \
+         "  $c" \
+         "    $doc_types" \
+         "" \
+         "훅이 거부하는 목록과 문서가 걸러 내는 목록은 같아야 합니다."
+  fi
+fi
+
 exit 0
