@@ -45,6 +45,19 @@ chmod +x .githooks/commit-msg
 
 저장소마다 `git config core.hooksPath .githooks` 를 직접 걸어도 동작한다. 대신 클론마다 그 한 줄이 필요하다.
 
+## 이식성
+
+macOS 는 GPLv2 에 묶여 **bash 3.2.57**(2007년)을 싣는다. `#!/usr/bin/env bash` 는 보통 그것을 집으므로, 이 디렉토리의 스크립트는 bash 3.2 에서 돌아야 한다.
+
+bash 3.2 컨테이너로 실측했다.
+
+- `commit-msg` 판정 16건이 bash 5.3 과 **완전히 같다** — type 접두어 4종, 접두어 없음, 대문자 scope, 콜론 뒤 공백 없음, 짧은 scope, 특수문자 scope, Merge·Revert·`fixup!`·주석 통과.
+- `dispatch` 3건 통과 — 저장소 훅 거부, 레거시 훅 거부, 둘 다 만족 시 통과.
+
+bash 4 이상에서만 되는 구문(대소문자 변환 `${v,,}`, 연관배열, `mapfile`, nameref, `&>>`)은 쓰지 않았다.
+
+Windows 는 확인하지 않았다. Git for Windows 는 자체 bash 를 싣지만 심볼릭 링크 처리가 다르므로, `install-dispatch.sh` 의 `ln -sf` 가 그대로 되는지는 미검증이다.
+
 ## 무엇을 검사하는가
 
 제목 한 줄만 본다.
