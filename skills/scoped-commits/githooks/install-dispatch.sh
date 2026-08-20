@@ -63,9 +63,15 @@ fi
 mkdir -p "$DEST"
 cp "$SRC" "$DEST/dispatch"
 chmod +x "$DEST/dispatch"
-for h in "${HOOKS[@]}"; do
-  ln -sf dispatch "$DEST/$h"
-done
+# 리눅스의 심볼릭 링크는 링크 위치 기준이라 소스가 상대경로여도 되지만,
+# Git for Windows(MSYS)의 ln 은 기본이 복사이고 복사는 CWD 기준으로
+# 소스를 찾는다. 링크가 놓일 곳에서 만들면 양쪽 다 된다.
+(
+  cd "$DEST"
+  for h in "${HOOKS[@]}"; do
+    ln -sf dispatch "$h"
+  done
+)
 git config --global core.hooksPath "$DEST"
 
 case "$state" in
