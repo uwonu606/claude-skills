@@ -27,6 +27,8 @@ bash ~/.claude/skills/scoped-commits/githooks/install-dispatch.sh
 
 전역 `core.hooksPath` 를 걸면 git 은 저장소별 `.git/hooks/` 를 통째로 무시한다. 그래서 디스패처가 두 곳을 대신 부른다 — 저장소의 `.githooks/<이름>` 과 `.git/hooks/<이름>`. husky 처럼 로컬에 훅을 까는 도구가 죽지 않는다. `pre-push` 처럼 stdin 을 쓰는 훅에는 읽어 둔 입력을 **원본 바이트 그대로** 다시 먹인다 — 끝의 개행이 하나라도 어긋나면 자식 훅의 `while read` 가 마지막 줄을 버린다.
 
+디스패처는 **복사본**으로 깔린다. 스킬을 갱신한 뒤에는 이 명령을 다시 돌려야 새 디스패처가 반영된다 — 다시 돌리면 최신인지 갱신했는지 알려주므로, 확실치 않으면 그냥 돌리면 된다.
+
 되돌리려면 `bash install-dispatch.sh --uninstall`.
 
 ### 2. 저장소를 옵인 — 저장소당 한 번

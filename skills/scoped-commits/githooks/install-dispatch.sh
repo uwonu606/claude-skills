@@ -41,6 +41,17 @@ if [ -n "$current" ] && [ "$current" != "$DEST" ]; then
   exit 1
 fi
 
+# 디스패처는 복사본으로 깐다. 심볼릭 링크로 저장소를 가리키면 갱신이 공짜지만,
+# 저장소를 옮기거나 지우는 순간 전역 core.hooksPath 아래의 모든 저장소에서 커밋이
+# 깨진다. 낡은 복사본보다 훨씬 나쁜 고장이라 복사를 고르고, 대신 갱신 여부를 알린다.
+if [ ! -e "$DEST/dispatch" ]; then
+  state="설치"
+elif cmp -s "$SRC" "$DEST/dispatch"; then
+  state="최신"
+else
+  state="갱신"
+fi
+
 mkdir -p "$DEST"
 cp "$SRC" "$DEST/dispatch"
 chmod +x "$DEST/dispatch"
@@ -49,7 +60,11 @@ for h in "${HOOKS[@]}"; do
 done
 git config --global core.hooksPath "$DEST"
 
-echo "설치 완료: $DEST (훅 ${#HOOKS[@]}종)"
+case "$state" in
+  최신) echo "디스패처 이미 최신: $DEST (훅 ${#HOOKS[@]}종)" ;;
+  갱신) echo "디스패처 갱신됨: $DEST (훅 ${#HOOKS[@]}종) — 낡은 복사본을 덮어썼습니다" ;;
+  *)    echo "설치 완료: $DEST (훅 ${#HOOKS[@]}종)" ;;
+esac
 echo "전역 core.hooksPath = $(git config --global core.hooksPath)"
 echo
 echo "이제 저장소에 .githooks/<훅이름> 을 두면 클론 직후 설정 없이 걸립니다."
