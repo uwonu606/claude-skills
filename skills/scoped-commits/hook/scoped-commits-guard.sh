@@ -5,9 +5,14 @@
 # Conventional Commits(type 접두어)로 나가고, 그것은 히스토리에 영구히 남는다.
 # 분할이 맞는지는 diff의 의미를 판정해야 알 수 있어 훅이 못 하므로 강제하지 않는다.
 #
-# 적용 범위는 저장소 루트의 .scoped-commits 마커 파일이 정한다. 마커가 없는
+# 적용 범위는 저장소의 AGENTS.md 안에 있는 마커 줄이 정한다. 마커가 없는
 # 저장소에서는 커밋을 검사하지 않는다 — 이 컨벤션을 안 쓰는 저장소(예: 팀
 # 저장소나 이미 Conventional Commits 로 쌓인 저장소)를 막지 않기 위해서다.
+#
+# AGENTS.md 를 고른 이유는 도구 중립 규약이기 때문이다. Codex·Cursor·Copilot·
+# Gemini CLI·Aider·Zed 등이 이 파일을 읽으므로, 컨벤션을 한 곳에 적으면 어느
+# 에이전트가 커밋하든 같은 사실을 본다. Claude Code 는 AGENTS.md 를 직접 읽지
+# 않으므로 CLAUDE.md 에 `@AGENTS.md` 한 줄로 임포트한다.
 #
 # 부수 효과로 현재 권한 모드를 ~/.claude/.scoped-commits-mode 에 남긴다.
 # 스킬이 분할안 승인을 받을지 판단하는 데 쓴다. PreToolUse 는 명령 실행
@@ -39,7 +44,8 @@ printf '%s' "$mode" > "$HOME/.claude/.scoped-commits-mode" 2>/dev/null || true
 printf '%s' "$input" | python3 -S -c '
 import json, os, re, shlex, sys
 
-MARKER = ".scoped-commits"
+MARKER_FILE = "AGENTS.md"
+MARKER_LINE = "<!-- scoped-commits: on -->"
 
 DENY_TAIL = """이 변경은 /scoped-commits 스킬로 커밋해야 합니다. 이 스킬은 사용자만 호출할 수 있으므로, 명령을 고쳐 다시 시도하지 말고 사용자에게 실행을 요청하십시오."""
 
@@ -61,14 +67,21 @@ GLOBAL_VALUE_OPTS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace",
                      "--exec-path", "--config-env", "--super-prefix"}
 SHELL_OPS = {"&&", "||", ";", "|", ">", ">>", "<", "2>", "&"}
 
+def has_marker(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return any(MARKER_LINE in line for line in fh)
+    except Exception:
+        return False
+
 def opted_in(target, cwd):
-    """대상 저장소가 이 컨벤션을 쓰기로 했는가. 마커를 위로 올라가며 찾는다."""
+    """대상 저장소가 이 컨벤션을 쓰기로 했는가. AGENTS.md 를 위로 올라가며 찾는다."""
     try:
         d = os.path.abspath(os.path.join(cwd or os.getcwd(), target or "."))
     except Exception:
         return False
     while True:
-        if os.path.exists(os.path.join(d, MARKER)):
+        if has_marker(os.path.join(d, MARKER_FILE)):
             return True
         if os.path.exists(os.path.join(d, ".git")):
             return False        # 저장소 루트인데 마커가 없다
@@ -128,8 +141,8 @@ argv, target = commit_argv(command)
 if argv is None:
     sys.exit(0)
 
-# 마커가 없는 저장소는 이 컨벤션을 쓰지 않는다. -C 로 다른 저장소를 가리키면
-# cwd 가 아니라 그쪽을 본다 — 그러지 않으면 엉뚱한 저장소의 마커를 읽는다.
+# AGENTS.md 에 마커가 없는 저장소는 이 컨벤션을 쓰지 않는다. -C 로 다른
+# 저장소를 가리키면 cwd 가 아니라 그쪽을 본다 — 그러지 않으면 엉뚱한 저장소를 읽는다.
 if not opted_in(target, payload.get("cwd")):
     sys.exit(0)
 
