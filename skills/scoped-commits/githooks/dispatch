@@ -19,12 +19,15 @@ name=${0##*/}
 # 심볼릭 링크가 아니라 본체를 직접 부른 경우
 [ "$name" = "dispatch" ] && exit 0
 
-root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 gitdir=$(git rev-parse --git-dir 2>/dev/null) || exit 0
 case "$gitdir" in
   /*) ;;
   *) gitdir="$PWD/$gitdir" ;;
 esac
+# bare 저장소에는 워킹트리가 없어 --show-toplevel 이 실패한다. 그래도
+# $gitdir/hooks/ 는 불러야 하므로 root 만 비우고 계속 간다 — 서버측 훅이
+# 사는 곳이 바로 bare 저장소다.
+root=$(git rev-parse --show-toplevel 2>/dev/null) || root=""
 
 # stdin 을 쓰는 훅은 한 번만 읽어 두고 각 자식에게 다시 먹인다.
 #
@@ -52,7 +55,7 @@ run() {
   fi
 }
 
-for h in "$root/.githooks/$name" "$gitdir/hooks/$name"; do
+for h in ${root:+"$root/.githooks/$name"} "$gitdir/hooks/$name"; do
   run "$h" "$@" || exit $?
 done
 exit 0
