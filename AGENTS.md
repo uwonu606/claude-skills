@@ -16,8 +16,6 @@ install.sh               ~/.claude/skills 로 symlink 설치
 
 ## 커밋
 
-<!-- scoped-commits: on -->
-
 이 저장소는 **scoped-commits** 컨벤션을 쓴다.
 
 - 제목은 `<scope>: <설명>` 이다. `feat`·`fix`·`docs` 같은 **type 접두어를 쓰지 않는다.** 로그를 읽는 사람이 알고 싶은 것은 변경의 종류가 아니라 어느 영역을 건드렸는가다.
@@ -28,4 +26,9 @@ install.sh               ~/.claude/skills 로 symlink 설치
 
 전체 규칙은 `skills/scoped-commits/` 에 있다. Claude Code 에서는 `/scoped-commits` 로 커밋하면 이 규칙이 적용된다.
 
-위의 `<!-- scoped-commits: on -->` 줄은 가드 훅이 읽는 마커다. 이 줄이 있는 저장소에서만 훅이 커밋 제목을 검사한다. 지우면 검사가 꺼진다.
+강제는 `.githooks/commit-msg` 가 한다. git 수준 훅이라 Claude Code·Cursor·Codex·Aider·사람·CI 어디서 커밋하든 걸린다. 그 파일의 존재가 곧 이 컨벤션을 쓴다는 뜻이다.
+
+클론한 뒤 한 번 켜야 한다 — `core.hooksPath` 는 git 보안 정책상 커밋으로 전파되지 않는다.
+
+    git config core.hooksPath .githooks
+

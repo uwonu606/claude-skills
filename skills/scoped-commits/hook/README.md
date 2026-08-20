@@ -8,29 +8,33 @@
 - 거부 문면에 "이 스킬은 사용자만 호출할 수 있다"를 넣는 것이 핵심이다. 금지만 알린 문면으로는 3회 모두 제목만 고쳐 우회했고, 이 한 줄을 더하자 3회 모두 사용자에게 넘겼다.
 - 부수적으로 현재 권한 모드를 `~/.claude/.scoped-commits-mode`에 남긴다. 스킬이 분할안 승인을 받을지 판단하는 데 쓴다.
 
+## 두 층
+
+| 층 | 파일 | 누구에게 |
+|---|---|---|
+| 강제 | 저장소의 `.githooks/commit-msg` | **커밋을 만드는 모든 것** — Claude Code, Cursor, Codex, Aider, 사람, CI |
+| 조기 차단 | 이 PreToolUse 훅 | Claude Code (더 자세한 메시지, 스킬로 라우팅) |
+
+PreToolUse 훅은 Claude Code 에만 걸린다. 다른 에이전트가 커밋하면 아예 돌지 않으므로, 강제는 git 수준 훅이 맡는다.
+
 ## 어디에 걸리는가
 
-저장소의 **`AGENTS.md`** 안에 있는 마커 줄이 적용 범위를 정한다.
+**저장소의 `.githooks/commit-msg` 존재가 옵인이다.** 그 파일이 곧 강제 장치이므로, 별도 마커를 두면 "마커는 있는데 훅은 없다" 같은 어긋남이 생긴다.
 
-```markdown
-<!-- scoped-commits: on -->
+```bash
+mkdir -p .githooks
+cp ~/.claude/skills/scoped-commits/githooks/commit-msg .githooks/commit-msg
+chmod +x .githooks/commit-msg
+git config core.hooksPath .githooks
 ```
 
-이 줄이 없는 저장소에서는 커밋을 검사하지 않는다. 훅은 전역(`~/.claude/settings.json`)에 한 번만 걸고, 저장소를 늘리는 것은 `AGENTS.md` 에 줄 하나다.
+`core.hooksPath` 는 git 보안 정책상 커밋으로 전파되지 않으므로 **클론마다 한 번** 설정해야 한다.
 
-`AGENTS.md` 를 고른 이유는 **도구 중립 규약**이기 때문이다. Codex·Cursor·Copilot·Gemini CLI·Aider·Zed 등 6만 개 넘는 저장소가 쓰는 형식이라, 컨벤션을 거기 적으면 어느 에이전트가 커밋하든 같은 사실을 읽는다. 저장소별 `.claude/settings.json` 이나 전용 dotfile 은 Claude 전용이거나 아무 에이전트도 안 읽는다.
+`git -C <경로> commit` 이나 `cd <경로> && git commit` 처럼 다른 저장소를 가리키는 경우 **cwd 가 아니라 그 대상 저장소**를 본다.
 
-**Claude Code 는 `AGENTS.md` 를 직접 읽지 않는다.** `CLAUDE.md` 에 한 줄로 임포트한다.
+heredoc 본문은 데이터로 취급해 건너뛴다 — 본문에 `git commit` 이라는 글자가 있다고 커밋으로 읽으면, 그 문자열을 담은 파일을 쓰는 명령이 전부 막힌다.
 
-```markdown
-@AGENTS.md
-```
-
-마커 줄은 전용 HTML 주석이라 렌더링에는 안 보이고, 본문에 `scoped-commits` 가 산문으로 스쳐 나와도 걸리지 않는다.
-
-`git -C <경로> commit` 처럼 다른 저장소를 가리키는 경우 **cwd 가 아니라 그 대상 저장소**의 `AGENTS.md` 를 본다. 그러지 않으면 엉뚱한 저장소의 설정을 읽는다.
-
-권한 모드 기록은 마커와 무관하게 항상 돈다 — 스킬이 어디서 호출되든 그 값을 읽어야 하기 때문이다.
+권한 모드 기록은 옵인과 무관하게 항상 돈다 — 스킬이 어디서 호출되든 그 값을 읽어야 하기 때문이다.
 
 ## 무엇을 하지 않는가
 
