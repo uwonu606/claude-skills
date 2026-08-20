@@ -15,16 +15,35 @@ Claude Code 의 PreToolUse 훅으로도 같은 검사를 할 수 있지만, 그�
 
 ## 설치
 
+### 1. 전역 디스패처 — 기계당 한 번
+
+```bash
+bash ~/.claude/skills/scoped-commits/githooks/install-dispatch.sh
+```
+
+`~/.git-hooks/` 에 디스패처를 깔고 전역 `core.hooksPath` 를 거기로 건다. 이후 **저장소마다 설정할 일이 없다.**
+
+이 단계가 있는 이유는 `core.hooksPath` 가 커밋으로 전파되지 않기 때문이다(git 보안 정책). 저장소마다 켜는 방식이면 클론 직후 한 줄을 잊는 순간 훅이 **조용히 꺼진 채로** 돈다 — 파일은 멀쩡히 있고 문서도 컨벤션을 말하는데 아무것도 안 막는다. 조용한 실패는 시끄러운 실패보다 비싸다.
+
+전역 `core.hooksPath` 를 걸면 git 은 저장소별 `.git/hooks/` 를 통째로 무시한다. 그래서 디스패처가 두 곳을 대신 부른다 — 저장소의 `.githooks/<이름>` 과 `.git/hooks/<이름>`. husky 처럼 로컬에 훅을 까는 도구가 죽지 않는다.
+
+되돌리려면 `bash install-dispatch.sh --uninstall`.
+
+### 2. 저장소를 옵인 — 저장소당 한 번
+
 ```bash
 mkdir -p .githooks
 cp ~/.claude/skills/scoped-commits/githooks/commit-msg .githooks/commit-msg
 chmod +x .githooks/commit-msg
-git config core.hooksPath .githooks
 ```
 
-`.githooks/commit-msg` 를 저장소에 커밋하면 클론에 따라온다. 하지만 **`core.hooksPath` 는 전파되지 않는다** — git 보안 정책이라 우회할 방법이 없고, 클론마다 한 번 설정해야 한다. 설정하지 않으면 훅은 조용히 꺼진 채로 돈다.
+커밋하면 클론에 따라오고, 디스패처가 깔린 기계에서는 **클론 직후 아무 설정 없이 걸린다.**
 
-이 저장소를 쓰지 않기로 하면 `git config --unset core.hooksPath` 한 줄이면 된다.
+이 저장소를 쓰지 않기로 하면 `.githooks/commit-msg` 를 지우면 된다.
+
+### 디스패처 없이 쓰려면
+
+저장소마다 `git config core.hooksPath .githooks` 를 직접 걸어도 동작한다. 대신 클론마다 그 한 줄이 필요하다.
 
 ## 무엇을 검사하는가
 

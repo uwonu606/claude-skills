@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# 전역 훅 디스패처.
+#
+# `git config --global core.hooksPath ~/.git-hooks` 로 걸면 git 은 저장소별
+# .git/hooks/ 를 통째로 무시하고 그 디렉토리만 본다. 그래서 이 스크립트가
+# 두 곳을 대신 불러 준다:
+#
+#   1) <저장소>/.githooks/<이름>   커밋으로 전파되는 저장소 규약
+#   2) <gitdir>/hooks/<이름>       husky 등이 설치한 로컬 훅
+#
+# 이렇게 해야 전역 설정이 기존 훅을 죽이지 않는다. 하나라도 0 이 아닌 코드로
+# 끝나면 그 코드로 끝낸다.
+#
+# 이 디스패처를 두는 이유는 core.hooksPath 가 커밋으로 전파되지 않기
+# 때문이다. 저장소마다 켜는 대신 기계당 한 번만 켜면, 클론 직후 한 줄을
+# 잊어서 훅이 조용히 꺼지는 일이 없어진다.
+
+name=${0##*/}
+# 심볼릭 링크가 아니라 본체를 직접 부른 경우
+[ "$name" = "dispatch" ] && exit 0
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+gitdir=$(git rev-parse --git-dir 2>/dev/null) || exit 0
+case "$gitdir" in
+  /*) ;;
+  *) gitdir="$PWD/$gitdir" ;;
+esac
+
+# stdin 을 쓰는 훅은 한 번만 읽어 두고 각 자식에게 다시 먹인다.
+case "$name" in
+  pre-push|pre-receive|post-receive|proc-receive|reference-transaction|push-to-checkout|post-rewrite)
+    payload=$(cat)
+    use_stdin=1 ;;
+  *)
+    use_stdin=0 ;;
+esac
+
+run() {
+  local h=$1
+  shift
+  [ -x "$h" ] || return 0
+  if [ "$use_stdin" = 1 ]; then
+    printf '%s' "$payload" | "$h" "$@"
+  else
+    "$h" "$@"
+  fi
+}
+
+for h in "$root/.githooks/$name" "$gitdir/hooks/$name"; do
+  run "$h" "$@" || exit $?
+done
+exit 0
