@@ -11,12 +11,20 @@ set -euo pipefail
 DEST="$HOME/.git-hooks"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/dispatch"
 
-# git 이 부르는 클라이언트 사이드 훅 이름. 여기 없는 이름은 전역 설정
-# 아래에서 아예 안 불린다 — 그래서 넉넉히 깐다.
+# git 이 core.hooksPath 에서 찾는 훅 이름. 여기 없는 이름은 전역 설정
+# 아래에서 아예 안 불린다 — 서버측 훅까지 넉넉히 깐다.
+#
+# 일부러 뺀 것:
+#   proc-receive        stdin/stdout 양방향 프로토콜 훅. 읽어 뒀다 재생하는
+#                       이 디스패처로는 중계할 수 없다.
+#   fsmonitor-watchman  core.fsmonitor 설정값이 훅 경로를 직접 가리키므로
+#                       core.hooksPath 를 타지 않는다.
+#   p4-*                hooksPath 를 타는지 확인하지 못했다.
 HOOKS=(
   applypatch-msg pre-applypatch post-applypatch
   pre-commit pre-merge-commit prepare-commit-msg commit-msg post-commit
   pre-rebase post-checkout post-merge pre-push
+  pre-receive update post-receive post-update
   post-rewrite pre-auto-gc sendemail-validate
   reference-transaction push-to-checkout post-index-change
 )

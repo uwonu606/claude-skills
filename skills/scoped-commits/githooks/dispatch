@@ -33,7 +33,7 @@ esac
 # `while read` 가 그 줄을 버린다. ref 가 하나뿐이면 유일한 줄이 사라져 훅이
 # 아무것도 못 읽고 조용히 통과시킨다. 표식을 붙였다 떼어 원본 바이트를 지킨다.
 case "$name" in
-  pre-push|pre-receive|post-receive|proc-receive|reference-transaction|push-to-checkout|post-rewrite)
+  pre-push|pre-receive|post-receive|reference-transaction|push-to-checkout|post-rewrite)
     payload=$(cat; printf x)
     payload=${payload%x}
     use_stdin=1 ;;
