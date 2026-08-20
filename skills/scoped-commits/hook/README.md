@@ -41,8 +41,18 @@
 ## 확인
 
 ```bash
-printf '{"tool_name":"Bash","permission_mode":"default","tool_input":{"command":"git commit -m \"fix: x\""}}\0' \
+check() {
+  python3 -c 'import json,sys;sys.stdout.write(json.dumps(
+    {"tool_name":"Bash","permission_mode":"default",
+     "tool_input":{"command":sys.argv[1]}})+"\0")' "$1" \
   | bash ~/.claude/skills/scoped-commits/hook/scoped-commits-guard.sh
+}
+
+check 'git commit -m "fix: x"'          # deny 가 나와야 한다
+check 'git -C /tmp commit -m "fix: x"'  # deny 가 나와야 한다
+check 'git commit -m "some-scope: x"'   # 아무것도 출력하지 않아야 한다
 ```
 
-`permissionDecision: deny`가 나오면 걸린 것이다. 같은 명령을 `-m "some-scope: x"`로 바꾸면 아무것도 출력하지 않는다.
+`bash printf` 로 JSON 을 만들지 마라. 작은따옴표 안의 `\"` 에서 백슬래시가 떨어져 나가
+깨진 JSON 이 되고, 훅은 그것을 조용히 삼켜 아무것도 출력하지 않는다 — 훅이 멀쩡한데도
+"안 걸린다"로 읽힌다.
