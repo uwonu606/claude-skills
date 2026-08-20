@@ -5,6 +5,10 @@
 # Conventional Commits(type 접두어)로 나가고, 그것은 히스토리에 영구히 남는다.
 # 분할이 맞는지는 diff의 의미를 판정해야 알 수 있어 훅이 못 하므로 강제하지 않는다.
 #
+# 적용 범위는 저장소 루트의 .scoped-commits 마커 파일이 정한다. 마커가 없는
+# 저장소에서는 커밋을 검사하지 않는다 — 이 컨벤션을 안 쓰는 저장소(예: 팀
+# 저장소나 이미 Conventional Commits 로 쌓인 저장소)를 막지 않기 위해서다.
+#
 # 부수 효과로 현재 권한 모드를 ~/.claude/.scoped-commits-mode 에 남긴다.
 # 스킬이 분할안 승인을 받을지 판단하는 데 쓴다. PreToolUse 는 명령 실행
 # 전에 돌므로, 스킬이 그 파일을 cat 하는 시점에는 이미 최신이다.
@@ -33,7 +37,9 @@ printf '%s' "$mode" > "$HOME/.claude/.scoped-commits-mode" 2>/dev/null || true
 [[ $compact == *commit* ]] || exit 0
 
 printf '%s' "$input" | python3 -S -c '
-import json, re, shlex, sys
+import json, os, re, shlex, sys
+
+MARKER = ".scoped-commits"
 
 DENY_TAIL = """이 변경은 /scoped-commits 스킬로 커밋해야 합니다. 이 스킬은 사용자만 호출할 수 있으므로, 명령을 고쳐 다시 시도하지 말고 사용자에게 실행을 요청하십시오."""
 
@@ -55,6 +61,22 @@ GLOBAL_VALUE_OPTS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace",
                      "--exec-path", "--config-env", "--super-prefix"}
 SHELL_OPS = {"&&", "||", ";", "|", ">", ">>", "<", "2>", "&"}
 
+def opted_in(target, cwd):
+    """대상 저장소가 이 컨벤션을 쓰기로 했는가. 마커를 위로 올라가며 찾는다."""
+    try:
+        d = os.path.abspath(os.path.join(cwd or os.getcwd(), target or "."))
+    except Exception:
+        return False
+    while True:
+        if os.path.exists(os.path.join(d, MARKER)):
+            return True
+        if os.path.exists(os.path.join(d, ".git")):
+            return False        # 저장소 루트인데 마커가 없다
+        parent = os.path.dirname(d)
+        if parent == d:
+            return False
+        d = parent
+
 def deny(reason):
     print(json.dumps({"hookSpecificOutput": {
         "hookEventName": "PreToolUse",
@@ -64,7 +86,7 @@ def deny(reason):
     sys.exit(0)
 
 def commit_argv(command):
-    """명령줄 전체에서 git ... commit 의 인자 목록을 꺼낸다. 없으면 None."""
+    """git ... commit 의 (인자 목록, -C 로 지정된 대상 경로). 없으면 (None, None)."""
     try:
         toks = shlex.split(command)
     except ValueError:
@@ -75,16 +97,24 @@ def commit_argv(command):
         if t != "git" and not t.endswith("/git"):
             continue
         j = i + 1
+        target = None
         while j < len(toks) and toks[j].startswith("-"):
-            j += 2 if toks[j] in GLOBAL_VALUE_OPTS else 1
+            if toks[j] in GLOBAL_VALUE_OPTS:
+                if toks[j] == "-C" and j + 1 < len(toks):
+                    target = toks[j + 1]
+                j += 2
+            else:
+                if toks[j].startswith("--git-dir="):
+                    target = os.path.dirname(toks[j].split("=", 1)[1])
+                j += 1
         if j < len(toks) and toks[j] == "commit":
             rest = []
             for a in toks[j + 1:]:
                 if a in SHELL_OPS:
                     break
                 rest.append(a)
-            return rest
-    return None
+            return rest, target
+    return None, None
 
 try:
     payload = json.load(sys.stdin)
@@ -94,8 +124,13 @@ command = (payload.get("tool_input") or {}).get("command")
 if not isinstance(command, str):
     sys.exit(0)
 
-argv = commit_argv(command)
+argv, target = commit_argv(command)
 if argv is None:
+    sys.exit(0)
+
+# 마커가 없는 저장소는 이 컨벤션을 쓰지 않는다. -C 로 다른 저장소를 가리키면
+# cwd 가 아니라 그쪽을 본다 — 그러지 않으면 엉뚱한 저장소의 마커를 읽는다.
+if not opted_in(target, payload.get("cwd")):
     sys.exit(0)
 
 # 기존 메시지를 재사용하는 형태는 검사 대상이 아니다.
