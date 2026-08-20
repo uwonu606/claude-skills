@@ -28,6 +28,8 @@ install.sh               ~/.claude/skills 로 symlink 설치
 
 강제는 `.githooks/commit-msg` 가 한다. git 수준 훅이라 Claude Code·Cursor·Codex·Aider·사람·CI 어디서 커밋하든 걸린다. 그 파일의 존재가 곧 이 컨벤션을 쓴다는 뜻이다.
 
+`commit-msg` 훅은 두 벌 있다 — `.githooks/` 의 것이 실제로 돌고, `skills/scoped-commits/githooks/` 의 것은 다른 저장소로 복사해 갈 배포본이다. 한쪽만 고치면 `.githooks/pre-commit` 이 커밋을 막는다.
+
 `core.hooksPath` 는 git 보안 정책상 커밋으로 전파되지 않으므로 배선은 기계 쪽에서 한 번 해야 한다. 전역 디스패처를 깔면 기계당 한 번으로 끝나고, 이후로는 클론 직후 아무 설정 없이 걸린다.
 
     bash skills/scoped-commits/githooks/install-dispatch.sh

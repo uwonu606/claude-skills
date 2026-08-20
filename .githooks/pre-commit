@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# scoped-commits: 저장소가 유지해야 하는 불변을 커밋 직전에 검사한다.
+#
+# commit-msg 훅은 이 저장소에 두 벌 있다. .githooks/ 의 것은 옵인 신호이자
+# 실제로 도는 것이고, 스킬 디렉토리의 것은 다른 저장소로 복사해 갈 배포본이다.
+# 둘 다 있어야 하는 구조라 중복을 없앨 수 없는데, 한쪽만 고치면 스킬을 깐
+# 사람과 이 저장소가 서로 다른 규칙을 쓰게 되고 아무도 그것을 알아채지 못한다.
+#
+# 워킹트리가 아니라 인덱스를 본다. 커밋에 실제로 담길 내용이 기준이다.
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+
+fail() {
+  {
+    echo
+    echo "커밋이 거부되었습니다: $1"
+    echo
+    shift
+    for line in "$@"; do echo "$line"; done
+  } >&2
+  exit 1
+}
+
+a=.githooks/commit-msg
+b=skills/scoped-commits/githooks/commit-msg
+
+if git cat-file -e ":$a" 2>/dev/null && git cat-file -e ":$b" 2>/dev/null; then
+  if ! diff -q <(git show ":$a") <(git show ":$b") >/dev/null 2>&1; then
+    fail "commit-msg 두 벌이 어긋났습니다." \
+         "  $a" \
+         "  $b" \
+         "" \
+         "한쪽만 고쳤다면 다른 쪽에도 같이 반영하고 함께 스테이징하십시오." \
+         "" \
+         "차이:" \
+         "$(diff <(git show ":$a") <(git show ":$b") | sed 's/^/    /')"
+  fi
+fi
+
+exit 0
