@@ -1,24 +1,20 @@
 #!/usr/bin/env bash
 # PreToolUse 훅: scope 없는 커밋을 막고 /scoped-commits 로 보낸다.
 #
-# 막는 것은 제목 형식 하나다. 규칙 없이 커밋하게 두면 제목이 6/6으로
-# Conventional Commits(type 접두어)로 나가고, 그것은 히스토리에 영구히 남는다.
-# 분할이 맞는지는 diff의 의미를 판정해야 알 수 있어 훅이 못 하므로 강제하지 않는다.
+# 이것은 Claude Code 에만 걸리는 조기 차단이다. 강제는 저장소의
+# .githooks/commit-msg 가 맡는다 — 그쪽은 커밋을 만드는 모든 것에 걸린다.
+# 여기서 먼저 막는 이유는 메시지를 더 자세히 줄 수 있고 스킬로 라우팅할 수
+# 있기 때문이다. 규칙 없이 커밋하게 두면 제목이 6/6 으로 Conventional
+# Commits 로 나가고, 그것은 히스토리에 영구히 남는다.
 #
-# 적용 범위는 저장소의 AGENTS.md 안에 있는 마커 줄이 정한다. 마커가 없는
-# 저장소에서는 커밋을 검사하지 않는다 — 이 컨벤션을 안 쓰는 저장소(예: 팀
-# 저장소나 이미 Conventional Commits 로 쌓인 저장소)를 막지 않기 위해서다.
-#
-# AGENTS.md 를 고른 이유는 도구 중립 규약이기 때문이다. Codex·Cursor·Copilot·
-# Gemini CLI·Aider·Zed 등이 이 파일을 읽으므로, 컨벤션을 한 곳에 적으면 어느
-# 에이전트가 커밋하든 같은 사실을 본다. Claude Code 는 AGENTS.md 를 직접 읽지
-# 않으므로 CLAUDE.md 에 `@AGENTS.md` 한 줄로 임포트한다.
+# 적용 범위는 저장소의 .githooks/commit-msg 가 정한다. 그 파일이 곧 옵인
+# 아티팩트이자 강제 장치라, "마커는 있는데 훅은 없다" 같은 어긋남이 없다.
+# 분할이 맞는지는 diff 의 의미를 판정해야 알 수 있어 훅이 못 하므로
+# 강제하지 않는다.
 #
 # 부수 효과로 현재 권한 모드를 ~/.claude/.scoped-commits-mode 에 남긴다.
 # 스킬이 분할안 승인을 받을지 판단하는 데 쓴다. PreToolUse 는 명령 실행
 # 전에 돌므로, 스킬이 그 파일을 cat 하는 시점에는 이미 최신이다.
-#
-# 흔한 경로(commit 이라는 글자가 없는 모든 호출)는 서브프로세스 없이 끝난다.
 
 IFS= read -r -d '' input
 
@@ -44,8 +40,8 @@ printf '%s' "$mode" > "$HOME/.claude/.scoped-commits-mode" 2>/dev/null || true
 printf '%s' "$input" | python3 -S -c '
 import json, os, re, shlex, sys
 
-MARKER_FILE = "AGENTS.md"
-MARKER_LINE = "<!-- scoped-commits: on -->"
+HOOK_REL = os.path.join(".githooks", "commit-msg")
+HOOK_TOKEN = "scoped-commits"
 
 DENY_TAIL = """이 변경은 /scoped-commits 스킬로 커밋해야 합니다. 이 스킬은 사용자만 호출할 수 있으므로, 명령을 고쳐 다시 시도하지 말고 사용자에게 실행을 요청하십시오."""
 
@@ -67,29 +63,6 @@ GLOBAL_VALUE_OPTS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace",
                      "--exec-path", "--config-env", "--super-prefix"}
 SHELL_OPS = {"&&", "||", ";", "|", ">", ">>", "<", "2>", "&"}
 
-def has_marker(path):
-    try:
-        with open(path, encoding="utf-8", errors="replace") as fh:
-            return any(MARKER_LINE in line for line in fh)
-    except Exception:
-        return False
-
-def opted_in(target, cwd):
-    """대상 저장소가 이 컨벤션을 쓰기로 했는가. AGENTS.md 를 위로 올라가며 찾는다."""
-    try:
-        d = os.path.abspath(os.path.join(cwd or os.getcwd(), target or "."))
-    except Exception:
-        return False
-    while True:
-        if has_marker(os.path.join(d, MARKER_FILE)):
-            return True
-        if os.path.exists(os.path.join(d, ".git")):
-            return False        # 저장소 루트인데 마커가 없다
-        parent = os.path.dirname(d)
-        if parent == d:
-            return False
-        d = parent
-
 def deny(reason):
     print(json.dumps({"hookSpecificOutput": {
         "hookEventName": "PreToolUse",
@@ -98,19 +71,46 @@ def deny(reason):
     }}, ensure_ascii=False))
     sys.exit(0)
 
-def commit_argv(command):
-    """git ... commit 의 (인자 목록, -C 로 지정된 대상 경로). 없으면 (None, None)."""
+def split_heredocs(command):
+    """(명령 부분, {구분자: 본문}) 로 가른다.
+
+    heredoc 본문은 데이터지 명령이 아니다. 본문에 `git commit` 이라는 글자가
+    있다고 커밋으로 읽으면, 그 문자열을 담은 파일을 쓰는 명령이 전부 막힌다.
+    """
+    lines = command.split("\n")
+    code, bodies, i = [], {}, 0
+    while i < len(lines):
+        line = lines[i]
+        code.append(line)
+        m = re.search(r"<<-?\s*[\"\x27]?([A-Za-z_][A-Za-z0-9_]*)[\"\x27]?", line)
+        i += 1
+        if not m:
+            continue
+        delim, body = m.group(1), []
+        while i < len(lines) and lines[i].strip() != delim:
+            body.append(lines[i])
+            i += 1
+        i += 1                      # 구분자 줄을 건너뛴다
+        bodies[delim] = "\n".join(body)
+    return "\n".join(code), bodies
+
+def commit_argv(code):
+    """git ... commit 의 (인자, -C 대상, 그 시점의 cwd 이동). 없으면 (None, None, None)."""
     try:
-        toks = shlex.split(command)
+        toks = shlex.split(code)
     except ValueError:
-        return None
-    # 셸 문법이 앞에 붙은 토큰에서 git 을 드러낸다: (git, {git
+        return None, None, None
     toks = [t.lstrip("({") for t in toks]
+    cd = None
     for i, t in enumerate(toks):
+        # `cd <경로> && git commit` 도 대상 저장소를 바꾼다. -C 만 보면 놓친다.
+        if t == "cd" and i + 1 < len(toks) and toks[i + 1] not in SHELL_OPS:
+            nxt = toks[i + 1]
+            cd = nxt if os.path.isabs(nxt) else os.path.join(cd or ".", nxt)
+            continue
         if t != "git" and not t.endswith("/git"):
             continue
-        j = i + 1
-        target = None
+        j, target = i + 1, None
         while j < len(toks) and toks[j].startswith("-"):
             if toks[j] in GLOBAL_VALUE_OPTS:
                 if toks[j] == "-C" and j + 1 < len(toks):
@@ -126,8 +126,36 @@ def commit_argv(command):
                 if a in SHELL_OPS:
                     break
                 rest.append(a)
-            return rest, target
-    return None, None
+            return rest, target, cd
+    return None, None, None
+
+def opted_in(target, cd, cwd):
+    """대상 저장소가 이 컨벤션을 쓰기로 했는가.
+
+    옵인 아티팩트는 .githooks/commit-msg 자체다 — 그 파일이 모든 도구에
+    걸리는 강제 장치이므로, 따로 마커를 두면 둘이 어긋날 수 있다.
+    """
+    try:
+        base = cwd or os.getcwd()
+        if cd:
+            base = os.path.join(base, cd)
+        d = os.path.abspath(os.path.join(base, target or "."))
+    except Exception:
+        return False
+    while True:
+        p = os.path.join(d, HOOK_REL)
+        try:
+            with open(p, encoding="utf-8", errors="replace") as fh:
+                if HOOK_TOKEN in fh.read():
+                    return True
+        except Exception:
+            pass
+        if os.path.exists(os.path.join(d, ".git")):
+            return False        # 저장소 루트인데 훅이 없다
+        parent = os.path.dirname(d)
+        if parent == d:
+            return False
+        d = parent
 
 try:
     payload = json.load(sys.stdin)
@@ -137,13 +165,12 @@ command = (payload.get("tool_input") or {}).get("command")
 if not isinstance(command, str):
     sys.exit(0)
 
-argv, target = commit_argv(command)
+code, bodies = split_heredocs(command)
+argv, target, cd = commit_argv(code)
 if argv is None:
     sys.exit(0)
 
-# AGENTS.md 에 마커가 없는 저장소는 이 컨벤션을 쓰지 않는다. -C 로 다른
-# 저장소를 가리키면 cwd 가 아니라 그쪽을 본다 — 그러지 않으면 엉뚱한 저장소를 읽는다.
-if not opted_in(target, payload.get("cwd")):
+if not opted_in(target, cd, payload.get("cwd")):
     sys.exit(0)
 
 # 기존 메시지를 재사용하는 형태는 검사 대상이 아니다.
@@ -159,22 +186,20 @@ for i, a in enumerate(argv):
     if a.startswith("--message="):
         title = a.split("=", 1)[1]
         break
-    # 묶인 단축 플래그도 값을 싣는다: -am, -sm. -m 은 묶음의 마지막이어야 한다.
-    if re.match(r"^-[A-Za-z]*m$", a):
-        if len(a) > 2 and i + 1 < len(argv):
-            title = argv[i + 1]
-            break
-        if a == "-m" and i + 1 < len(argv):
-            title = argv[i + 1]
-            break
+    # 묶인 단축 플래그도 값을 싣는다: -am, -sm.
+    if re.match(r"^-[A-Za-z]*m$", a) and i + 1 < len(argv):
+        title = argv[i + 1]
+        break
     if a.startswith("-m") and len(a) > 2 and not a[2:].startswith("-"):
         title = a[2:]
         break
     if a in ("-F", "--file") and i + 1 < len(argv) and argv[i + 1] == "-":
-        # heredoc 본문이 명령줄에 실려 있다. 첫 비어 있지 않은 줄이 제목이다.
-        body = command.split("<<", 1)[-1]
-        lines = body.split("\n")[1:]
-        title = next((l for l in lines if l.strip()), None)
+        # 메시지가 heredoc 본문으로 들어온다. 첫 비어 있지 않은 줄이 제목이다.
+        for body in bodies.values():
+            cand = next((l for l in body.split("\n") if l.strip()), None)
+            if cand:
+                title = cand
+                break
         break
 
 if title is None:

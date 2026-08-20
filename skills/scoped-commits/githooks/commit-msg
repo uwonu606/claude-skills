@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# scoped-commits: 커밋 제목이 scope 형식인지 검사한다.
+#
+# git 수준 훅이라 커밋을 만드는 모든 것에 걸린다 — Claude Code, Cursor,
+# Codex, Aider, 사람, CI. Claude Code 의 PreToolUse 훅은 같은 검사를 더 앞에서
+# 더 친절한 메시지로 하지만 Claude Code 에만 걸리므로, 강제는 이 파일이 맡는다.
+#
+# 이 파일의 존재가 곧 옵인이다. 저장소에 두고 한 번 켜면 된다:
+#
+#     mkdir -p .githooks
+#     cp <스킬 디렉토리>/githooks/commit-msg .githooks/commit-msg
+#     chmod +x .githooks/commit-msg
+#     git config core.hooksPath .githooks
+#
+# core.hooksPath 는 저장소에 커밋해도 전파되지 않는다(git 보안 정책).
+# 클론마다 한 번 설정해야 한다.
+
+TYPES='feat|fix|docs|chore|refactor|style|test|build|ci|perf|revert'
+
+title=$(sed -n '1p' "$1")
+
+# 빈 제목이나 주석만 있는 경우는 git 이 알아서 거부한다.
+[[ -z ${title// /} || $title == \#* ]] && exit 0
+
+# 머지·리버트·픽스업은 형식을 git 이 만든 것이므로 건드리지 않는다.
+[[ $title == Merge\ * || $title == Revert\ * || $title == fixup!\ * || $title == squash!\ * ]] && exit 0
+
+fail() {
+  {
+    echo
+    echo "커밋이 거부되었습니다: $title"
+    echo
+    echo "$1"
+    echo
+    echo "이 저장소는 scope 중심 커밋을 씁니다."
+    echo "  제목:  <scope>: <설명>"
+    echo "  scope: 그 코드가 하는 일의 이름. 소문자 kebab-case."
+    echo "         파일명·디렉토리명을 그대로 쓰지 않습니다."
+    echo "  예시:  denial-log: 거부를 규칙과 값으로 가른다"
+    echo
+    echo "규칙 전문은 AGENTS.md 를 보십시오."
+  } >&2
+  exit 1
+}
+
+if [[ $title =~ ^($TYPES)(\([^\)]*\))?: ]]; then
+  fail "type 접두어($TYPES)를 쓰지 않습니다. 로그를 읽는 사람이 알고 싶은 것은 변경의 종류가 아니라 어느 영역을 건드렸는가입니다."
+fi
+
+if [[ ! $title =~ ^[a-z0-9][a-z0-9._/-]*:\ +[^[:space:]] ]]; then
+  fail "제목이 '<scope>: <설명>' 형태가 아닙니다."
+fi
+
+exit 0
