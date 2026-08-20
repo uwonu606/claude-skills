@@ -2,8 +2,8 @@
 # scoped-commits: 커밋 제목이 scope 형식인지 검사한다.
 #
 # git 수준 훅이라 커밋을 만드는 모든 것에 걸린다 — Claude Code, Cursor,
-# Codex, Aider, 사람, CI. Claude Code 의 PreToolUse 훅은 같은 검사를 더 앞에서
-# 더 친절한 메시지로 하지만 Claude Code 에만 걸리므로, 강제는 이 파일이 맡는다.
+# Codex, Aider, 사람, CI. 에이전트별 조기 차단 층은 두지 않는다. 도구마다
+# 따로 배선해야 하는 데다, 강제는 어차피 이 파일이 전부 맡기 때문이다.
 #
 # 이 파일의 존재가 곧 옵인이다. 저장소에 두고 한 번 켜면 된다:
 #
