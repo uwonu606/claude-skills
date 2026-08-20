@@ -27,9 +27,15 @@ case "$gitdir" in
 esac
 
 # stdin 을 쓰는 훅은 한 번만 읽어 두고 각 자식에게 다시 먹인다.
+#
+# $(...) 는 끝의 개행을 전부 지운다. git 이 주는 pre-push 페이로드는 줄마다
+# 개행으로 끝나므로, 그대로 다시 먹이면 마지막 줄에 개행이 없어져 자식 훅의
+# `while read` 가 그 줄을 버린다. ref 가 하나뿐이면 유일한 줄이 사라져 훅이
+# 아무것도 못 읽고 조용히 통과시킨다. 표식을 붙였다 떼어 원본 바이트를 지킨다.
 case "$name" in
   pre-push|pre-receive|post-receive|proc-receive|reference-transaction|push-to-checkout|post-rewrite)
-    payload=$(cat)
+    payload=$(cat; printf x)
+    payload=${payload%x}
     use_stdin=1 ;;
   *)
     use_stdin=0 ;;

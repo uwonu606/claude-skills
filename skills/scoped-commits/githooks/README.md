@@ -25,7 +25,7 @@ bash ~/.claude/skills/scoped-commits/githooks/install-dispatch.sh
 
 이 단계가 있는 이유는 `core.hooksPath` 가 커밋으로 전파되지 않기 때문이다(git 보안 정책). 저장소마다 켜는 방식이면 클론 직후 한 줄을 잊는 순간 훅이 **조용히 꺼진 채로** 돈다 — 파일은 멀쩡히 있고 문서도 컨벤션을 말하는데 아무것도 안 막는다. 조용한 실패는 시끄러운 실패보다 비싸다.
 
-전역 `core.hooksPath` 를 걸면 git 은 저장소별 `.git/hooks/` 를 통째로 무시한다. 그래서 디스패처가 두 곳을 대신 부른다 — 저장소의 `.githooks/<이름>` 과 `.git/hooks/<이름>`. husky 처럼 로컬에 훅을 까는 도구가 죽지 않는다.
+전역 `core.hooksPath` 를 걸면 git 은 저장소별 `.git/hooks/` 를 통째로 무시한다. 그래서 디스패처가 두 곳을 대신 부른다 — 저장소의 `.githooks/<이름>` 과 `.git/hooks/<이름>`. husky 처럼 로컬에 훅을 까는 도구가 죽지 않는다. `pre-push` 처럼 stdin 을 쓰는 훅에는 읽어 둔 입력을 **원본 바이트 그대로** 다시 먹인다 — 끝의 개행이 하나라도 어긋나면 자식 훅의 `while read` 가 마지막 줄을 버린다.
 
 되돌리려면 `bash install-dispatch.sh --uninstall`.
 
