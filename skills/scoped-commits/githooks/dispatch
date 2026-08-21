@@ -20,8 +20,16 @@
 # 넘기므로 argv[0] 이 사라진다 — exec -a 로 정해도 소용없다. 그래서
 # 부르는 쪽이 이름을 환경변수로 실어 보낼 수 있게 열어 둔다.
 name=${GIT_HOOK_NAME:-${0##*/}}
-# 심볼릭 링크가 아니라 본체를 직접 부른 경우
-[ "$name" = "dispatch" ] && exit 0
+
+# 이름이 dispatch 면 어느 훅으로 불렸는지 모르는 것이다. 래퍼가 이름을 실어
+# 보내므로 정상 경로에서는 일어나지 않는다 — 배선이 어긋났다는 뜻이다.
+# 조용히 통과시키면 훅 스물몇 개가 통째로 죽은 채 아무도 모른다.
+if [ "$name" = "dispatch" ]; then
+  echo "훅 디스패처가 어느 훅으로 불렸는지 알지 못합니다." >&2
+  echo "  \$0=$0  GIT_HOOK_NAME=${GIT_HOOK_NAME:-(없음)}" >&2
+  echo "  install-dispatch.sh 를 다시 돌려 배선을 맞추십시오." >&2
+  exit 1
+fi
 
 gitdir=$(git rev-parse --git-dir 2>/dev/null) || exit 0
 case "$gitdir" in
