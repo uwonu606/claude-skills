@@ -12,21 +12,24 @@ DEST="$HOME/.git-hooks"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/dispatch"
 
 # git 이 core.hooksPath 에서 찾는 훅 이름. 여기 없는 이름은 전역 설정
-# 아래에서 아예 안 불린다 — 서버측 훅까지 넉넉히 깐다.
+# 아래에서 아예 안 불린다 — 서버측 훅과 p4 훅까지 넉넉히 깐다.
+#
+# proc-receive 는 stdin/stdout 양방향 프로토콜 훅이라 읽어 뒀다 재생하면
+# 협상이 깨진다. 그래서 dispatch 의 stdin 목록에서 빼 두었고, 빠져 있으면
+# stdin 이 자식에게 그대로 물려져 프로토콜이 통한다. 실제 push 로 확인했다.
 #
 # 일부러 뺀 것:
-#   proc-receive        stdin/stdout 양방향 프로토콜 훅. 읽어 뒀다 재생하는
-#                       이 디스패처로는 중계할 수 없다.
 #   fsmonitor-watchman  core.fsmonitor 설정값이 훅 경로를 직접 가리키므로
-#                       core.hooksPath 를 타지 않는다.
-#   p4-*                hooksPath 를 타는지 확인하지 못했다.
+#                       core.hooksPath 를 타지 않는다. stdout 이 프로토콜
+#                       응답이라 두 곳을 부르면 출력이 섞이기도 한다.
 HOOKS=(
   applypatch-msg pre-applypatch post-applypatch
   pre-commit pre-merge-commit prepare-commit-msg commit-msg post-commit
   pre-rebase post-checkout post-merge pre-push
-  pre-receive update post-receive post-update
+  pre-receive update proc-receive post-receive post-update
   post-rewrite pre-auto-gc sendemail-validate
   reference-transaction push-to-checkout post-index-change
+  p4-changelist p4-prepare-changelist p4-post-changelist p4-pre-submit
 )
 
 if [ "${1:-}" = "--uninstall" ]; then
