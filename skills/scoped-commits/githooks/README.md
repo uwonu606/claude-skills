@@ -1,6 +1,6 @@
 # commit-msg 훅
 
-커밋 제목이 scope 형식인지 검사한다. **git 수준 훅이라 커밋을 만드는 모든 것에 걸린다** — Claude Code, Cursor, Codex, Aider, 사람, CI.
+커밋 메시지가 규약의 정적 규칙을 지키는지 검사한다. **git 수준 훅이라 커밋을 만드는 모든 것에 걸린다** — Claude Code, Cursor, Codex, Aider, 사람, CI.
 
 ## 왜 git 훅인가
 
