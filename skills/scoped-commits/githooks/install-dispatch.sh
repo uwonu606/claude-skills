@@ -55,26 +55,36 @@ fi
 # 디스패처는 복사본으로 깐다. 심볼릭 링크로 저장소를 가리키면 갱신이 공짜지만,
 # 저장소를 옮기거나 지우는 순간 전역 core.hooksPath 아래의 모든 저장소에서 커밋이
 # 깨진다. 낡은 복사본보다 훨씬 나쁜 고장이라 복사를 고르고, 대신 갱신 여부를 알린다.
-if [ ! -e "$DEST/dispatch" ]; then
+CORE="$DEST/lib/dispatch"
+
+if [ ! -e "$CORE" ]; then
   state="설치"
-elif cmp -s "$SRC" "$DEST/dispatch"; then
+elif cmp -s "$SRC" "$CORE"; then
   state="최신"
 else
   state="갱신"
 fi
 
-mkdir -p "$DEST"
-cp "$SRC" "$DEST/dispatch"
-chmod +x "$DEST/dispatch"
-# 리눅스의 심볼릭 링크는 링크 위치 기준이라 소스가 상대경로여도 되지만,
-# Git for Windows(MSYS)의 ln 은 기본이 복사이고 복사는 CWD 기준으로
-# 소스를 찾는다. 링크가 놓일 곳에서 만들면 양쪽 다 된다.
-(
-  cd "$DEST"
-  for h in "${HOOKS[@]}"; do
-    ln -sf dispatch "$h"
-  done
-)
+mkdir -p "$DEST/lib"
+rm -f "$CORE"
+cp "$SRC" "$CORE"
+chmod +x "$CORE"
+
+# 훅 이름마다 본체를 가리키는 작은 래퍼를 둔다. 심볼릭 링크가 아니라 실제
+# 파일인 것이 요점이다 — 링크였을 때는 누가 `echo ... > ~/.git-hooks/pre-commit`
+# 한 번만 해도 링크를 따라가 본체가 덮어써졌고, 그러면 훅 이름 전부가 그
+# 스크립트를 실행하게 된다. 래퍼면 그 이름 하나만 바뀐다.
+#
+# 이름을 GIT_HOOK_NAME 으로 넘기는 이유는 dispatch 머리말에 적었다.
+for h in "${HOOKS[@]}"; do
+  rm -f "$DEST/$h"
+  printf '#!/usr/bin/env bash\nGIT_HOOK_NAME=${0##*/} exec "%s" "$@"\n' "$CORE" > "$DEST/$h"
+  chmod +x "$DEST/$h"
+done
+
+# 예전 방식으로 깔린 본체가 훅 이름 자리에 남아 있으면 치운다.
+[ -e "$DEST/dispatch" ] && rm -f "$DEST/dispatch"
+
 git config --global core.hooksPath "$DEST"
 
 case "$state" in
