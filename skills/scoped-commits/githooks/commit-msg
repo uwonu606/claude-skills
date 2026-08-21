@@ -39,7 +39,7 @@ fail() {
     echo "         파일명·디렉토리명을 그대로 쓰지 않습니다."
     echo "  예시:  denial-log: 거부를 규칙과 값으로 가른다"
     echo
-    echo "규칙 전문은 AGENTS.md 를 보십시오."
+    echo "규칙은 AGENTS.md 를 보십시오."
   } >&2
   exit 1
 }
