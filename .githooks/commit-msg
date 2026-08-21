@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scoped-commits: 커밋 제목이 scope 형식인지 검사한다.
+# scoped-commits: 커밋 메시지가 규약의 정적 규칙을 지키는지 검사한다.
 #
 # git 수준 훅이라 커밋을 만드는 모든 것에 걸린다 — Claude Code, Cursor,
 # Codex, Aider, 사람, CI. 에이전트별 조기 차단 층은 두지 않는다. 도구마다
@@ -44,6 +44,56 @@ fail() {
   exit 1
 }
 
+# 코드포인트가 동아시아 W/F(표시 폭 2) 구간이면 0 을 돌려준다.
+# 구간마다 줄을 갈라 명시적으로 검사한다 — && || 를 한 줄에 이어 붙이면
+# 좌결합 평가가 상한이 단조증가일 때만 우연히 맞는 식이 된다.
+is_wide() {
+  local cp=$1
+  [ "$cp" -ge 4352 ] && [ "$cp" -le 4447 ] && return 0      # 1100-115F 한글 자모
+  [ "$cp" -ge 11904 ] && [ "$cp" -le 42191 ] &&
+    [ "$cp" -ne 12351 ] && return 0                          # 2E80-A4CF CJK (303F 제외)
+  [ "$cp" -ge 44032 ] && [ "$cp" -le 55203 ] && return 0    # AC00-D7A3 한글 음절
+  [ "$cp" -ge 63744 ] && [ "$cp" -le 64255 ] && return 0    # F900-FAFF CJK 호환 한자
+  [ "$cp" -ge 65040 ] && [ "$cp" -le 65049 ] && return 0    # FE10-FE19 세로쓰기 부호
+  [ "$cp" -ge 65072 ] && [ "$cp" -le 65135 ] && return 0    # FE30-FE6F CJK 호환 부호
+  [ "$cp" -ge 65280 ] && [ "$cp" -le 65376 ] && return 0    # FF00-FF60 전각
+  [ "$cp" -ge 65504 ] && [ "$cp" -le 65510 ] && return 0    # FFE0-FFE6 전각 기호
+  [ "$cp" -ge 127744 ] && [ "$cp" -le 129791 ] && return 0  # 1F300-1FAFF 이모지
+  [ "$cp" -ge 131072 ] && [ "$cp" -le 262141 ] && return 0  # 20000-3FFFD CJK 확장
+  return 1
+}
+
+# UTF-8 문자열의 표시 폭과 마지막 코드포인트를 "<폭> <코드포인트>" 로
+# 출력한다. 서브셸에서 LC_ALL=C 로 돌므로 호출 환경의 로케일과 무관하게
+# 바이트 단위로 읽는다 — bash 3.2/5.3, C/UTF-8 로케일에서 같은 값이 나오는
+# 것을 실측했다.
+measure() (
+  LC_ALL=C
+  s=$1 i=0 w=0 last=0
+  n=${#s}
+  while [ "$i" -lt "$n" ]; do
+    printf -v b '%d' "'${s:i:1}"
+    [ "$b" -lt 0 ] && b=$((b + 256))
+    if [ "$b" -lt 128 ]; then cp=$b; len=1
+    elif [ "$b" -lt 192 ]; then cp=$b; len=1    # 깨진 연속 바이트는 폭 1로 센다
+    elif [ "$b" -lt 224 ]; then cp=$((b & 31)); len=2
+    elif [ "$b" -lt 240 ]; then cp=$((b & 15)); len=3
+    else cp=$((b & 7)); len=4
+    fi
+    j=1
+    while [ "$j" -lt "$len" ]; do
+      printf -v b '%d' "'${s:i+j:1}"
+      [ "$b" -lt 0 ] && b=$((b + 256))
+      cp=$(( (cp << 6) | (b & 63) ))
+      j=$((j + 1))
+    done
+    if is_wide "$cp"; then w=$((w + 2)); else w=$((w + 1)); fi
+    last=$cp
+    i=$((i + len))
+  done
+  echo "$w $last"
+)
+
 if [[ $title =~ ^($TYPES)(\([^\)]*\))?: ]]; then
   fail "type 접두어($TYPES)를 쓰지 않습니다. 로그를 읽는 사람이 알고 싶은 것은 변경의 종류가 아니라 어느 영역을 건드렸는가입니다."
 fi
@@ -55,6 +105,26 @@ if [[ $title =~ ^([a-zA-Z0-9][^:[:space:]]*):\ +[^[:space:]] ]]; then
   fi
 else
   fail "제목이 '<scope>: <설명>' 형태가 아닙니다."
+fi
+
+# 제목 폭은 문자 수가 아니라 표시 폭으로 센다. messages.md 가 36자의 근거를
+# "한글 한 자가 2칼럼이라 72칼럼"으로 적었으므로 판정도 칼럼이다. 순한글
+# 제목이면 36자와 정확히 같고, 영문·혼합에서만 덜 빡빡해진다.
+read -r width last <<< "$(measure "$title")"
+
+if [ "$width" -gt 72 ]; then
+  fail "제목이 ${width}칼럼입니다. 72칼럼(순한글 36자)을 넘을 수 없습니다."
+fi
+
+# 제목이 한글 음절로 끝나면 '다' 로 끝나야 한다. 라틴 문자 등으로 끝나면
+# 건너뛴다 — '~다' 는 한국어 문법이라 무조건 걸면 이 배포본을 영문
+# 저장소에서 못 쓴다.
+if [ "$last" -ge 44032 ] && [ "$last" -le 55203 ] && [ "$last" -ne 45796 ]; then
+  fail "제목이 한글로 끝나면 '~다' 로 끝나야 합니다."
+fi
+
+if [[ $title == *. ]]; then
+  fail "제목에 마침표를 붙이지 않습니다."
 fi
 
 exit 0
