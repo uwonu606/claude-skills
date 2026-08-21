@@ -59,7 +59,9 @@ run() {
   fi
 }
 
-for h in ${root:+"$root/.githooks/$name"} "$gitdir/hooks/$name"; do
+# 부르는 순서는 넓은 것에서 좁은 것으로다 — 기계 전체 규약, 저장소 규약,
+# 그 클론에만 있는 훅. 앞의 것이 0 이 아닌 코드로 끝나면 거기서 멈춘다.
+for h in "$HOME/.git-hooks/user/$name" ${root:+"$root/.githooks/$name"} "$gitdir/hooks/$name"; do
   run "$h" "$@" || exit $?
 done
 exit 0

@@ -66,6 +66,9 @@ else
 fi
 
 mkdir -p "$DEST/lib"
+# 기계 전체에 걸 자기 훅을 두는 자리. 훅 이름 자리를 직접 건드리지 않아도
+# 되게 하려고 둔다 — 거기를 덮어쓰면 그 이름의 위임이 끊긴다.
+mkdir -p "$DEST/user"
 rm -f "$CORE"
 cp "$SRC" "$CORE"
 chmod +x "$CORE"
@@ -96,3 +99,4 @@ echo "전역 core.hooksPath = $(git config --global core.hooksPath)"
 echo
 echo "이제 저장소에 .githooks/<훅이름> 을 두면 클론 직후 설정 없이 걸립니다."
 echo "저장소별 .git/hooks/ 도 함께 실행되므로 husky 같은 것이 죽지 않습니다."
+echo "기계 전체에 걸 훅은 $DEST/user/<훅이름> 에 두십시오 — 저장소 훅과 함께 실행됩니다."
