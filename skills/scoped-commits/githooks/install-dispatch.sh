@@ -89,7 +89,10 @@ chmod 555 "$CORE"
 # bash 로 돈다.
 for h in "${HOOKS[@]}"; do
   rm -f "$DEST/$h"
-  printf '#!/bin/sh\nGIT_HOOK_NAME=${0##*/} exec "%s" "$@"\n' "$CORE" > "$DEST/$h"
+  # 본체 경로를 문자열로 박지 않는다. 박으면 $HOME 에 따옴표가 하나만 있어도
+  # 래퍼가 문법이 깨진 채 만들어지는데, 설치는 성공으로 끝나 아무도 모른다.
+  # git 은 훅을 절대경로로 부르므로 래퍼가 ${0%/*} 로 자기 자리를 안다.
+  printf '#!/bin/sh\nGIT_HOOK_NAME=${0##*/} exec "${0%%/*}/lib/dispatch" "$@"\n' > "$DEST/$h"
   chmod 555 "$DEST/$h"
 done
 
