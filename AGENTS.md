@@ -24,7 +24,7 @@ install.sh               ~/.claude/skills 로 symlink 설치
 - **모든 커밋에 본문을 쓴다.** 왜 했는지, 고려했다가 하지 않은 것과 그 이유, 확인하지 못한 것을 담는다.
 - 커밋은 의미 단위로 나눈다 — 커밋 하나가 혼자 읽었을 때 하나의 이야기다.
 
-전체 규칙은 `skills/scoped-commits/` 에 있다. Claude Code 에서는 `/scoped-commits` 로 커밋하면 이 규칙이 적용된다.
+전체 규칙은 `skills/scoped-commits/` 에 있다. Claude Code 에서는 scoped-commits 스킬이 이 규칙으로 커밋한다 — 사용자가 `/scoped-commits` 로 부르든, 에이전트가 커밋을 만들며 스스로 띄우든 같은 경로다.
 
 강제는 `.githooks/commit-msg` 가 한다. git 수준 훅이라 Claude Code·Cursor·Codex·Aider·사람·CI 어디서 커밋하든 걸린다. 그 파일의 존재가 곧 이 컨벤션을 쓴다는 뜻이다.
 
