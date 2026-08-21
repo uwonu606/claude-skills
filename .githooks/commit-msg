@@ -127,4 +127,29 @@ if [[ $title == *. ]]; then
   fail "제목에 마침표를 붙이지 않습니다."
 fi
 
+# 본문이 있어야 한다: 제목 다음에 빈 줄, 그 뒤에 비어 있지 않은 줄.
+# 존재만 본다 — 길이를 재면 "충분한가"라는 판정이 들어와 정적이 아니게
+# 된다. 주석과 scissors 이후(git commit -v 의 diff)는 본문으로 세지 않는다.
+lineno=0 body_ok=0
+while IFS= read -r line || [ -n "$line" ]; do
+  [[ $line == \#*' >8 '* ]] && break
+  [[ $line == \#* ]] && continue
+  lineno=$((lineno + 1))
+  [ "$lineno" -eq 1 ] && continue
+  if [ "$lineno" -eq 2 ]; then
+    if [[ $line == *[![:space:]]* ]]; then
+      fail "제목과 본문 사이에 빈 줄이 있어야 합니다."
+    fi
+    continue
+  fi
+  if [[ $line == *[![:space:]]* ]]; then
+    body_ok=1
+    break
+  fi
+done < "$1"
+
+if [ "$body_ok" -ne 1 ]; then
+  fail "본문이 없습니다. 왜 했는지, 고려했다가 하지 않은 것, 확인하지 못한 것을 산문으로 적으십시오."
+fi
+
 exit 0
