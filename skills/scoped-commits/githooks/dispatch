@@ -59,9 +59,19 @@ run() {
   fi
 }
 
+# 기계 전체 훅이 사는 곳은 $HOME 으로 찾지 않는다. 훅이 도는 시점의 $HOME 이
+# 깔던 시점과 다르면(sudo, CI, 데몬 사용자) 그 층이 조용히 빠지기 때문이다.
+# 대신 자기 위치에서 유도한다 — 래퍼가 부르면 <훅디렉토리>/lib/dispatch 이고,
+# 예전 심볼릭 링크로 부르면 <훅디렉토리>/<훅이름> 이다.
+case "$0" in
+  */lib/dispatch) hooksdir=${0%/lib/dispatch} ;;
+  */*)            hooksdir=${0%/*} ;;
+  *)              hooksdir=. ;;
+esac
+
 # 부르는 순서는 넓은 것에서 좁은 것으로다 — 기계 전체 규약, 저장소 규약,
 # 그 클론에만 있는 훅. 앞의 것이 0 이 아닌 코드로 끝나면 거기서 멈춘다.
-for h in "$HOME/.git-hooks/user/$name" ${root:+"$root/.githooks/$name"} "$gitdir/hooks/$name"; do
+for h in "$hooksdir/user/$name" ${root:+"$root/.githooks/$name"} "$gitdir/hooks/$name"; do
   run "$h" "$@" || exit $?
 done
 exit 0
