@@ -68,12 +68,14 @@ fi
 # 깨진다. 낡은 복사본보다 훨씬 나쁜 고장이라 복사를 고르고, 대신 갱신 여부를 알린다.
 CORE="$DEST/lib/dispatch"
 
-if [ ! -e "$CORE" ]; then
-  state="설치"
-elif cmp -s "$SRC" "$CORE"; then
-  state="최신"
-else
+# 옛 배치(훅 이름 자리에 본체가 있고 나머지가 심볼릭 링크)에서 올라오는
+# 경우도 갱신이다. $CORE 만 보면 그때 파일이 없어 신규 설치로 잘못 센다.
+if [ -e "$CORE" ]; then
+  if cmp -s "$SRC" "$CORE"; then state="최신"; else state="갱신"; fi
+elif [ -e "$DEST/dispatch" ]; then
   state="갱신"
+else
+  state="설치"
 fi
 
 mkdir -p "$DEST/lib"
