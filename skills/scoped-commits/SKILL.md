@@ -1,7 +1,7 @@
 ---
 name: scoped-commits
-description: 워킹트리의 변경을 의미 단위로 나누고, scope 중심 메시지를 붙여 커밋한다.
-disable-model-invocation: true
+description: 워킹트리의 커밋되지 않은 변경을 의미 단위로 나누고, scope 중심 메시지를 붙여 커밋한다. 사용자가 커밋을 요청했거나 새 커밋을 만들려 할 때 쓴다. --amend·revert·cherry-pick·rebase 같은 기존 커밋 조작에는 쓰지 않는다.
+disable-model-invocation: false
 ---
 
 더러운 워킹트리를 받아 여러 개의 커밋으로 만든다. 분할을 먼저 확정하고, 확정된 뒤에야 메시지를 쓴다.
