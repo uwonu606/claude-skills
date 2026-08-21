@@ -71,7 +71,10 @@ mkdir -p "$DEST/lib"
 mkdir -p "$DEST/user"
 rm -f "$CORE"
 cp "$SRC" "$CORE"
-chmod +x "$CORE"
+# 쓰기 권한을 빼 둔다. 훅 자리에 리다이렉트로 파일을 만들려는 시도가
+# 조용히 성공하는 대신 Permission denied 로 끝난다. 갱신은 위의 rm -f 가
+# 먼저 지우므로 막히지 않는다 — 파일을 지우는 것은 디렉토리 권한이다.
+chmod 555 "$CORE"
 
 # 훅 이름마다 본체를 가리키는 작은 래퍼를 둔다. 심볼릭 링크가 아니라 실제
 # 파일인 것이 요점이다 — 링크였을 때는 누가 `echo ... > ~/.git-hooks/pre-commit`
@@ -82,7 +85,7 @@ chmod +x "$CORE"
 for h in "${HOOKS[@]}"; do
   rm -f "$DEST/$h"
   printf '#!/usr/bin/env bash\nGIT_HOOK_NAME=${0##*/} exec "%s" "$@"\n' "$CORE" > "$DEST/$h"
-  chmod +x "$DEST/$h"
+  chmod 555 "$DEST/$h"
 done
 
 # 예전 방식으로 깔린 본체가 훅 이름 자리에 남아 있으면 치운다.
