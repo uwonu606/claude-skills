@@ -40,8 +40,19 @@ if [ "${1:-}" = "--uninstall" ]; then
   else
     echo "전역 core.hooksPath 가 이 디스패처를 가리키지 않음: ${current:-(없음)}"
   fi
-  rm -rf "$DEST"
-  echo "$DEST 제거됨"
+  # user/ 는 남긴다. 이 스크립트가 "기계 전체 훅은 여기 두라"고 안내한
+  # 자리라, 배선을 걷는 김에 남의 훅까지 지우면 안 된다.
+  if [ -d "$DEST" ]; then
+    find "$DEST" -mindepth 1 -maxdepth 1 ! -name user -exec rm -rf {} +
+    if [ -n "$(ls -A "$DEST/user" 2>/dev/null)" ]; then
+      echo "$DEST 의 배선을 걷었습니다 — $DEST/user 는 남겨 두었습니다"
+      echo "  들어 있는 훅: $(ls -A "$DEST/user" | tr '\n' ' ')"
+      echo "  필요 없으면 직접 지우십시오."
+    else
+      rm -rf "$DEST"
+      echo "$DEST 제거됨"
+    fi
+  fi
   exit 0
 fi
 
