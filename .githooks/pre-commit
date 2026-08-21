@@ -58,30 +58,28 @@ if git cat-file -e ":$a" 2>/dev/null && git cat-file -e ":$c" 2>/dev/null; then
   fi
 fi
 
-# 제목 폭 상수는 세 자리에 산다 — 훅이 거부에 쓰고, messages.md 가 규칙
-# 원문으로 적고, AGENTS.md 가 요약으로 적는다. 실행되는 것은 훅뿐이라
-# 어긋나도 아무도 실패하지 않고, 문서가 규칙인 척하는 상태만 남는다.
-# 실제로 그렇게 갈렸던 적이 있어 이 검사를 넣었다.
-d=AGENTS.md
+# 제목 폭 상수는 두 자리에 산다 — 훅이 거부에 쓰고, messages.md 가 규칙
+# 원문으로 적는다. 실행되는 것은 훅뿐이라 어긋나도 아무도 실패하지 않고,
+# 원문이 규칙인 척하는 상태만 남는다. 실제로 그렇게 갈렸던 적이 있어 이
+# 검사를 넣었다.
+#
+# 예전에는 AGENTS.md 의 요약까지 세 자리였다. 그 요약을 지우면서 두 자리가
+# 됐다 — 규칙 세부는 커밋을 만들 때만 필요하고 그때는 스킬이 주므로, 매
+# 세션 컨텍스트에 실리는 파일이 사본을 들고 있을 이유가 없다.
 
-if git cat-file -e ":$a" 2>/dev/null && git cat-file -e ":$c" 2>/dev/null &&
-   git cat-file -e ":$d" 2>/dev/null; then
+if git cat-file -e ":$a" 2>/dev/null && git cat-file -e ":$c" 2>/dev/null; then
   hook_w=$(git show ":$a" | sed -n 's/^if \[ "$width" -gt \([0-9]*\) \].*/\1/p')
   msg_w=$(git show ":$c" | sed -n 's/.*\*\*\([0-9]*\)칼럼 이내\.\*\*.*/\1/p')
-  agents_w=$(git show ":$d" | sed -n 's/.*포함 \([0-9]*\)칼럼(.*/\1/p')
 
   # 한쪽이 비면 문면이 바뀐 것이다. 지킬 약속이 없으므로 검사하지 않는다.
-  if [ -n "$hook_w" ] && [ -n "$msg_w" ] && [ -n "$agents_w" ] &&
-     { [ "$hook_w" != "$msg_w" ] || [ "$hook_w" != "$agents_w" ]; }; then
+  if [ -n "$hook_w" ] && [ -n "$msg_w" ] && [ "$hook_w" != "$msg_w" ]; then
     fail "제목 폭 값이 어긋났습니다." \
          "  $a" \
          "    $hook_w 칼럼" \
          "  $c" \
          "    $msg_w 칼럼" \
-         "  $d" \
-         "    $agents_w 칼럼" \
          "" \
-         "훅이 거부하는 값과 문서가 적는 값은 같아야 합니다."
+         "훅이 거부하는 값과 원문이 적는 값은 같아야 합니다."
   fi
 fi
 

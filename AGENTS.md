@@ -14,29 +14,8 @@ install.sh               ~/.claude/skills 로 symlink 설치
 
 `SKILL.md` frontmatter 의 `name` 은 디렉토리 이름과 같아야 하고, 그대로 `/<이름>` 슬래시 커맨드가 된다.
 
-## 커밋
-
-이 저장소는 **scoped-commits** 컨벤션을 쓴다.
-
-- 제목은 `<scope>: <설명>` 이다. `feat`·`fix`·`docs` 같은 **type 접두어를 쓰지 않는다.** 로그를 읽는 사람이 알고 싶은 것은 변경의 종류가 아니라 어느 영역을 건드렸는가다.
-- scope 는 그 코드가 하는 일의 이름이다. 소문자 kebab-case, **파일명·디렉토리명을 그대로 쓰지 않는다.**
-- 제목은 scope 포함 72칼럼(순한글 36자) 이내, `~한다` 로 끝내고 마침표를 붙이지 않는다.
-- **모든 커밋에 본문을 쓴다.** 왜 했는지, 고려했다가 하지 않은 것과 그 이유, 확인하지 못한 것을 담는다.
-- 커밋은 의미 단위로 나눈다 — 커밋 하나가 혼자 읽었을 때 하나의 이야기다.
-
-전체 규칙은 `skills/scoped-commits/` 에 있다. Claude Code 에서는 scoped-commits 스킬이 이 규칙으로 커밋한다 — 사용자가 `/scoped-commits` 로 부르든, 에이전트가 커밋을 만들며 스스로 띄우든 같은 경로다.
-
-강제는 `.githooks/commit-msg` 가 한다. git 수준 훅이라 Claude Code·Cursor·Codex·Aider·사람·CI 어디서 커밋하든 걸린다. 그 파일의 존재가 곧 이 컨벤션을 쓴다는 뜻이다.
-
 `commit-msg` 훅은 두 벌 있다 — `.githooks/` 의 것이 실제로 돌고, `skills/scoped-commits/githooks/` 의 것은 다른 저장소로 복사해 갈 배포본이다. 한쪽만 고치면 `.githooks/pre-commit` 이 커밋을 막는다.
 
-`core.hooksPath` 는 git 보안 정책상 커밋으로 전파되지 않으므로 배선은 기계 쪽에서 한 번 해야 한다. 전역 디스패처를 깔면 기계당 한 번으로 끝나고, 이후로는 클론 직후 아무 설정 없이 걸린다.
+## 커밋
 
-    bash skills/scoped-commits/githooks/install-dispatch.sh
-
-저장소마다 켜는 방식도 동작한다. 대신 클론할 때마다 아래 한 줄이 필요하고, 잊으면 훅이 조용히 꺼진 채로 돈다.
-
-    git config core.hooksPath .githooks
-
-자세한 것은 `skills/scoped-commits/githooks/README.md` 에 있다.
-
+이 저장소는 scoped-commits 컨벤션을 쓴다. 커밋은 scoped-commits 스킬이 만들고, 규칙은 `skills/scoped-commits/` 에, 강제는 `.githooks/commit-msg` 가 한다 — git 수준 훅이라 Claude Code·Cursor·Codex·Aider·사람·CI 어디서 커밋하든 걸린다.
