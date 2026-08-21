@@ -16,6 +16,14 @@ bash install.sh --uninstall    # 제거 (이름 주면 그것만)
 
 기본이 symlink라 저장소에서 `SKILL.md`를 고치면 다음 세션부터 바로 반영됩니다. `--copy`로 깔았다면 수정 후 `install.sh`를 다시 실행해야 합니다.
 
+커밋 훅 배선은 기계당 한 번입니다. `core.hooksPath` 는 git 보안 정책상 클론에 전파되지 않아, 이걸 건너뛰면 훅이 **조용히 꺼진 채로** 돕니다 — 파일은 멀쩡히 있고 아무것도 막지 않습니다.
+
+```bash
+bash skills/scoped-commits/githooks/install-dispatch.sh
+```
+
+자세한 것은 `skills/scoped-commits/githooks/README.md` 에 있습니다.
+
 ## 새 스킬 만들기
 
 ```bash
@@ -29,6 +37,8 @@ bash install.sh <이름>
 - `description`은 Claude가 "이 스킬을 띄울지" 판단하는 유일한 근거입니다. 무엇을 하는지 + 어떤 상황/표현에서 트리거되는지를 같이 적으세요.
 - 본문은 Claude가 읽는 절차서입니다. 설명문보다 실행 가능한 단계로 씁니다.
 - 스킬이 보조 파일(스크립트, 참고 문서)을 쓰면 같은 디렉토리에 두고 `SKILL.md`에서 상대경로로 가리킵니다. symlink 설치라 경로가 그대로 유지됩니다.
+
+만든 것을 커밋할 때는 이 저장소의 컨벤션을 따릅니다 — 제목은 `<scope>: <설명>` 이고 본문은 필수입니다. `.githooks/commit-msg` 가 형식을 검사하므로 어긋나면 커밋이 거부됩니다. 규칙과 설계는 [`skills/scoped-commits/README.md`](skills/scoped-commits/README.md) 에 있습니다.
 
 ## 저장소 구성
 
