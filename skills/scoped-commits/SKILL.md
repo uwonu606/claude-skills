@@ -1,10 +1,12 @@
 ---
 name: scoped-commits
-description: 워킹트리의 커밋되지 않은 변경을 의미 단위로 나누고, scope 중심 메시지를 붙여 커밋한다. 사용자가 커밋을 요청했거나 새 커밋을 만들려 할 때 쓴다. --amend·revert·cherry-pick·rebase 같은 기존 커밋 조작에는 쓰지 않는다.
+description: 변경을 의미 단위로 나누고 scope 중심 메시지를 붙여 커밋한다. 사용자가 커밋을 요청했거나, 이미 쓴 커밋을 다시 나누거나 그 메시지를 규약에 맞게 고치려 할 때 쓴다. revert·cherry-pick 처럼 git 이 메시지를 만든 커밋은 그대로 둔다.
 disable-model-invocation: false
 ---
 
 더러운 워킹트리를 받아 여러 개의 커밋으로 만든다. 분할을 먼저 확정하고, 확정된 뒤에야 메시지를 쓴다.
+
+**이미 만들어진 커밋을 고치는 요청이면 [`references/rewriting.md`](references/rewriting.md)를 먼저 읽는다.** 아래 절차는 커밋되지 않은 변경을 다루므로, 대상을 워킹트리로 되돌리는 것이 앞에 온다.
 
 **[`references/messages.md`](references/messages.md)는 4단계에 가서 읽는다.** 분할을 판정하는 동안 메시지 규칙이 컨텍스트에 있으면 분할이 흔들린다 — 같은 변경에 의미 규칙만 주면 커밋 수가 4·4·4로 일치했고, 메시지 규칙을 함께 주면 6·8·4로 흩어졌다. 3단계를 끝내기 전에 열지 마라.
 
