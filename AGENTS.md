@@ -14,8 +14,6 @@ install.sh               ~/.claude/skills 로 symlink 설치
 
 `SKILL.md` frontmatter 의 `name` 은 디렉토리 이름과 같아야 하고, 그대로 `/<이름>` 슬래시 커맨드가 된다.
 
-`commit-msg` 훅은 두 벌 있다 — `.githooks/` 의 것이 실제로 돌고, `skills/scoped-commits/githooks/` 의 것은 다른 저장소로 복사해 갈 배포본이다. 한쪽만 고치면 `.githooks/pre-commit` 이 커밋을 막는다.
-
 ## 커밋
 
-이 저장소는 scoped-commits 컨벤션을 쓴다. 커밋은 scoped-commits 스킬이 만들고, 규칙은 `skills/scoped-commits/` 에, 강제는 `.githooks/commit-msg` 가 한다 — git 수준 훅이라 Claude Code·Cursor·Codex·Aider·사람·CI 어디서 커밋하든 걸린다.
+이 저장소는 scoped-commits 컨벤션을 쓴다. 커밋은 scoped-commits 스킬이 만들고, 규칙은 `skills/scoped-commits/` 에 있다. 강제하는 층은 없다 — 규약은 스킬과 문서로만 전달된다.

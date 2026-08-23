@@ -8,8 +8,6 @@ disable-model-invocation: false
 
 **[`messages.md`](messages.md)는 4단계에 가서 읽는다.** 분할을 판정하는 동안 메시지 규칙이 컨텍스트에 있으면 분할이 흔들린다 — 같은 변경에 의미 규칙만 주면 커밋 수가 4·4·4로 일치했고, 메시지 규칙을 함께 주면 6·8·4로 흩어졌다. 3단계를 끝내기 전에 열지 마라.
 
-규약을 강제하는 것은 저장소의 `.githooks/commit-msg` 다. 설치는 [`githooks/README.md`](githooks/README.md)를 보라.
-
 ## 1. 무엇이 바뀌었는지 본다
 
 `git status`와 `git diff HEAD`로 워킹트리 전체를 읽는다. 커밋되지 않은 변경 전부가 대상이다.
