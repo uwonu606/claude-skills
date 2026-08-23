@@ -28,7 +28,7 @@ bash install.sh <이름>
 - `name`은 디렉토리 이름과 같아야 하고, 그대로 `/<이름>` 슬래시 커맨드가 됩니다.
 - `description`은 Claude가 "이 스킬을 띄울지" 판단하는 유일한 근거입니다. 무엇을 하는지 + 어떤 상황/표현에서 트리거되는지를 같이 적으세요.
 - 본문은 Claude가 읽는 절차서입니다. 설명문보다 실행 가능한 단계로 씁니다.
-- 스킬이 보조 파일(스크립트, 참고 문서)을 쓰면 같은 디렉토리에 두고 `SKILL.md`에서 상대경로로 가리킵니다. symlink 설치라 경로가 그대로 유지됩니다.
+- 보조 파일은 스킬 디렉토리 아래 `references/`(필요할 때 읽는 문서)·`scripts/`(실행 코드)·`assets/`(산출물에 쓰는 파일)에 두고 `SKILL.md`에서 상대경로로 가리킵니다. symlink 설치라 경로가 그대로 유지됩니다.
 
 만든 것을 커밋할 때는 이 저장소의 컨벤션을 따릅니다 — 제목은 `<scope>: <설명>` 이고 본문은 필수입니다. 규칙과 설계는 [`skills/scoped-commits/README.md`](skills/scoped-commits/README.md) 에 있습니다.
 
@@ -39,5 +39,7 @@ claude-skills/
 ├── README.md
 ├── install.sh              # 설치/제거 스크립트
 ├── templates/SKILL.md      # 새 스킬 시작용 템플릿
-└── skills/<이름>/SKILL.md  # 스킬 하나당 디렉토리 하나
+└── skills/<이름>/
+    ├── SKILL.md        # 스킬 하나당 디렉토리 하나
+    └── references/     # 필요할 때 읽는 보조 문서
 ```
