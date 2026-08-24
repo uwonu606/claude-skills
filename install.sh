@@ -55,6 +55,16 @@ owned() {
   esac
 }
 
+# dest 가 없거나, 우리 것이거나, --force 면 비우고 0. 남의 것이면 그대로 두고 1.
+claim() {
+  { [ -e "$1" ] || [ -L "$1" ]; } || return 0
+  if owned "$1" || $FORCE; then
+    rm -rf "$1"
+    return 0
+  fi
+  return 1
+}
+
 # 저장소에 있는 스킬 목록 (SKILL.md 를 가진 디렉토리만)
 all_skills() {
   local d
@@ -93,8 +103,7 @@ if $UNINSTALL; then
   for name in "${NAMES[@]}"; do
     dest="$SKILLS_ROOT/$name"
     if [ -e "$dest" ] || [ -L "$dest" ]; then
-      if owned "$dest" || $FORCE; then
-        rm -rf "$dest"
+      if claim "$dest"; then
         echo "  - $dest"
       else
         echo "  ! $name — $dest 는 이 저장소가 건 symlink 가 아님, 건너뜀 (--force 로 제거)" >&2
@@ -113,13 +122,9 @@ for name in "${NAMES[@]}"; do
     continue
   fi
   dest="$SKILLS_ROOT/$name"
-  if [ -e "$dest" ] || [ -L "$dest" ]; then
-    if owned "$dest" || $FORCE; then
-      rm -rf "$dest"
-    else
-      echo "  ! $name — $dest 에 이 저장소 것이 아닌 항목이 있음, 건너뜀 (--force 로 대체)" >&2
-      continue
-    fi
+  if ! claim "$dest"; then
+    echo "  ! $name — $dest 에 이 저장소 것이 아닌 항목이 있음, 건너뜀 (--force 로 대체)" >&2
+    continue
   fi
   if [ "$MODE" = symlink ]; then
     ln -s "$src" "$dest"
