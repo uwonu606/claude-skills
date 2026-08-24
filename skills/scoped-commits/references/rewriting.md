@@ -18,7 +18,7 @@ git log --oneline @{upstream}..HEAD   # 아직 푸시되지 않은 범위 (upstr
 git log --merges <범위>               # 범위에 머지가 섞였는지
 ```
 
-- **푸시된 커밋을 고치면 force-push 가 필요하다.** 그것을 이미 받아 간 클론은 스스로 고쳐지지 않는다 — `git pull` 이 `refusing to merge unrelated histories` 로 멈추고, `--allow-unrelated-histories` 로 밀어붙이면 옛 커밋과 새 커밋이 나란히 남아 이력이 두 배가 된다. 사용자에게 확인을 받고 진행한다.
+- **푸시된 커밋을 고치면 force-push 가 필요하다.** 재작성해도 공통 조상이 남으므로 받아 간 클론과는 unrelated 가 아니라 diverged 로 갈린다. 그 클론의 `git pull` 은 설정이 없으면 `Need to specify how to reconcile divergent branches` 로 멈추고, merge 로 풀면(`pull.rebase false`) 경고 없이 옛 커밋과 새 커밋이 나란히 남아 이력이 두 배가 되며, `pull --rebase` 는 옛 상류의 커밋을 버리고 그 클론의 로컬 커밋만 새 이력 위에 얹는다 — reword 와 분할 모두에서 실측했다(2026-08-24). 어느 쪽이 되는지는 받은 쪽의 설정이라 통제할 수 없으므로, 사용자에게 확인을 받고 진행한다.
 - **범위에 머지가 있으면 이력의 모양이 바뀐다.** `rebase -i` 는 머지를 버리고 곁가지를 본류에 직렬로 펴고, `reset --soft` 는 곁가지 작업까지 인덱스로 끌어와 본류 변경과 섞는다. 무엇이 바뀌는지 말하고 확인을 받는다.
 
 ## 메시지만 고친다
