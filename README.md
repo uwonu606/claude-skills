@@ -14,7 +14,7 @@ bash install.sh --list         # 저장소에 있는 스킬 목록
 bash install.sh --uninstall    # 제거 (이름 주면 그것만)
 ```
 
-기본이 symlink라 저장소에서 `SKILL.md`를 고치면 다음 세션부터 바로 반영됩니다. `--copy`로 깔았다면 수정 후 `install.sh`를 다시 실행해야 합니다.
+기본이 symlink라 저장소에서 `SKILL.md`를 고치면 다음 세션부터 바로 반영됩니다. `--copy`로 깔았다면 수정 후 `install.sh --copy --force`를 다시 실행해야 합니다 — 복사본은 이 저장소가 건 symlink 가 아니어서 `--force` 없이는 덮어쓰지 않습니다.
 
 ## 새 스킬 만들기
 

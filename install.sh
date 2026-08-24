@@ -8,9 +8,12 @@
 #   bash install.sh --copy                 # symlink 대신 복사본으로 설치
 #   bash install.sh --list                 # 저장소에 있는 스킬 목록만 출력
 #   bash install.sh --uninstall [이름...]  # 설치 제거 (이름 없으면 전부)
+#   bash install.sh --force                # 이 저장소 것이 아닌 항목도 대체/제거
 #
 # 기본은 symlink 설치라 저장소에서 SKILL.md를 고치면 즉시 반영됩니다.
-# --copy 로 설치한 경우에는 수정 후 install.sh를 다시 실행해야 합니다.
+# --copy 로 설치한 경우에는 수정 후 install.sh --copy --force 를 다시 실행해야
+# 합니다 — 복사본은 이 저장소가 걸어 둔 symlink 가 아니어서 --force 없이는
+# 덮어쓰지 않습니다.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,6 +23,7 @@ TARGET_ROOT="$HOME/.claude"
 UNINSTALL=false
 MODE=symlink
 LIST_ONLY=false
+FORCE=false
 NAMES=()
 
 for arg in "$@"; do
@@ -28,6 +32,7 @@ for arg in "$@"; do
     --copy)      MODE=copy ;;
     --uninstall) UNINSTALL=true ;;
     --list)      LIST_ONLY=true ;;
+    --force)     FORCE=true ;;
     -h|--help)
       awk 'NR==1 {next} /^#/ {sub(/^# ?/, ""); print; next} {exit}' "${BASH_SOURCE[0]}"
       exit 0
@@ -40,6 +45,15 @@ for arg in "$@"; do
     *) NAMES+=("$arg") ;;
   esac
 done
+
+# dest 가 이 저장소가 걸어 둔 symlink 인가
+owned() {
+  [ -L "$1" ] || return 1
+  case "$(readlink "$1")" in
+    "$SRC_DIR"/*) return 0 ;;
+    *)            return 1 ;;
+  esac
+}
 
 # 저장소에 있는 스킬 목록 (SKILL.md 를 가진 디렉토리만)
 all_skills() {
@@ -79,8 +93,12 @@ if $UNINSTALL; then
   for name in "${NAMES[@]}"; do
     dest="$SKILLS_ROOT/$name"
     if [ -e "$dest" ] || [ -L "$dest" ]; then
-      rm -rf "$dest"
-      echo "  - $dest"
+      if owned "$dest" || $FORCE; then
+        rm -rf "$dest"
+        echo "  - $dest"
+      else
+        echo "  ! $name — $dest 는 이 저장소가 건 symlink 가 아님, 건너뜀 (--force 로 제거)" >&2
+      fi
     fi
   done
   exit 0
@@ -95,7 +113,14 @@ for name in "${NAMES[@]}"; do
     continue
   fi
   dest="$SKILLS_ROOT/$name"
-  rm -rf "$dest"
+  if [ -e "$dest" ] || [ -L "$dest" ]; then
+    if owned "$dest" || $FORCE; then
+      rm -rf "$dest"
+    else
+      echo "  ! $name — $dest 에 이 저장소 것이 아닌 항목이 있음, 건너뜀 (--force 로 대체)" >&2
+      continue
+    fi
+  fi
   if [ "$MODE" = symlink ]; then
     ln -s "$src" "$dest"
   else
