@@ -106,6 +106,7 @@ for inv in INVARIANTS:                   # 초기 상태부터 검사한다
     if not inv.holds(초기상태): 반례 기록 (inv, [], 초기상태)
 frontier = [(초기상태, [])]
 seen     = { key(초기상태) }
+잘림_값창, 잘림_깊이 = set(), set()
 while frontier:                          # 좁힌 범위 안에서는 반드시 빈다
     s, path = frontier.pop(0)
     for a in actions(s):                 # 설계가 적어 둔 전제조건만 반영
@@ -113,12 +114,13 @@ while frontier:                          # 좁힌 범위 안에서는 반드시 
         for inv in INVARIANTS:
             if not inv.holds(n): 반례 기록 (inv, npath, n)
         if key(n) in seen:      continue
-        if 범위_밖(n) or len(npath) > 깊이: 잘림 기록; continue
+        if 범위_밖(n):          잘림_값창.add(key(n)); continue
+        if len(npath) > 깊이:   잘림_깊이.add(key(n)); continue
         seen.add(key(n))
         frontier.append((n, npath))
 ```
 
-`범위_밖` 과 깊이 검사가 **좁힌 범위를 코드로 옮긴 자리**다. 여기서 자른 상태를 세어 보고에 적는다 — 잘림이 0이면 그 축은 실제로 걸리지 않았다는 뜻이고, 축을 아예 안 썼는지 썼는데 안 걸렸는지가 그 숫자로 갈린다.
+`범위_밖` 과 깊이 검사가 **좁힌 범위를 코드로 옮긴 자리**다. 잘림은 **횟수가 아니라 상태 집합으로** 센다 — 같은 상태가 다른 경로로 다시 잘릴 때마다 횟수로 세면 부풀고, 집합의 크기가 "그 축이 잘라 낸 상태 수"다. 잘림이 0이면 그 축은 실제로 걸리지 않았다는 뜻이고, 축을 아예 안 썼는지 썼는데 안 걸렸는지가 그 숫자로 갈린다.
 
 `key()` 는 정규화된 직렬화다 — 순서가 안정적이어야 같은 상태를 두 번 세지 않는다. 명령열을 상태와 함께 들고 다니는 이유는 Phase 4 가 반례에 경로를 요구하기 때문이다.
 
