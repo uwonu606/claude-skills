@@ -39,7 +39,7 @@ for arg in "$@"; do
       ;;
     -*)
       echo "알 수 없는 옵션: $arg" >&2
-      echo "사용법: bash install.sh [--project] [--copy] [--list] [--uninstall] [스킬이름...]" >&2
+      echo "사용법: bash install.sh [--project] [--copy] [--list] [--uninstall] [--force] [스킬이름...]" >&2
       exit 1
       ;;
     *) NAMES+=("$arg") ;;
