@@ -23,6 +23,8 @@ git log -n 30 --format=%s -- <이 커밋이 바꾸는 파일들> \
   | grep -vE '^(feat|fix|chore|refactor|style|perf|revert)$'
 ```
 
+파일 목록을 `git diff --name-only`로 뽑는다면 `--no-renames`를 붙여라. rename 감지가 기본 켜져 있어 리네임된 파일이 새 경로로만 나오고, `git log -- <새 경로>`는 리네임 전 이력을 **에러 없이 비운다.** 옛 경로까지 pathspec에 넣어야 그 파일의 과거 scope가 보인다.
+
 여기서 나온 이름은 **후보이지 기본값이 아니다.**
 
 - 재사용 자체는 목표가 아니다. "가능하면 재사용하라"는 압력을 주면 틀린 이름을 물려받고, 그 이름이 다음 커밋의 후보가 되어 번진다.
