@@ -20,8 +20,7 @@ bash install.sh --uninstall    # 제거 (이름 주면 그것만)
 
 ```bash
 mkdir -p skills/<이름>
-cp templates/SKILL.md skills/<이름>/SKILL.md
-$EDITOR skills/<이름>/SKILL.md      # frontmatter의 name 을 디렉토리 이름과 맞출 것
+$EDITOR skills/<이름>/SKILL.md      # 기존 스킬의 짜임을 본떠 쓴다
 bash install.sh <이름>
 ```
 
@@ -38,7 +37,6 @@ bash install.sh <이름>
 claude-skills/
 ├── README.md
 ├── install.sh              # 설치/제거 스크립트
-├── templates/SKILL.md      # 새 스킬 시작용 템플릿
 └── skills/<이름>/
     ├── SKILL.md        # 스킬 하나당 디렉토리 하나
     └── references/     # 필요할 때 읽는 보조 문서
