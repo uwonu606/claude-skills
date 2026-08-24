@@ -13,7 +13,7 @@ install.sh               ~/.claude/skills 로 symlink 설치
 
 `install.sh` 는 `SKILL.md` 를 가진 디렉토리만 스킬로 인식한다. 보조 파일은 스킬 디렉토리 아래 `references/`(필요할 때 읽는 문서)·`scripts/`(실행 코드)·`assets/`(산출물에 쓰는 파일)에 두고 `SKILL.md` 에서 상대경로로 가리킨다 — symlink 설치라 경로가 유지된다.
 
-`SKILL.md` frontmatter 의 `name` 은 디렉토리 이름과 같아야 하고, 그대로 `/<이름>` 슬래시 커맨드가 된다.
+`/<이름>` 슬래시 커맨드는 디렉토리 이름에서 온다. frontmatter 의 `name` 은 목록에 보이는 레이블일 뿐이지만, 둘이 갈리면 헷갈리므로 디렉토리 이름과 같게 둔다.
 
 ## 커밋
 
