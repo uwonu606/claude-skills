@@ -14,7 +14,7 @@ bash install.sh --list         # 저장소에 있는 스킬 목록
 bash install.sh --uninstall    # 제거 (이름 주면 그것만)
 ```
 
-기본이 symlink라 저장소에서 `SKILL.md`를 고치면 다음 세션부터 바로 반영됩니다. `--copy`로 깔았다면 수정 후 `install.sh --copy --force`를 다시 실행해야 합니다 — 복사본은 이 저장소가 건 symlink 가 아니어서 `--force` 없이는 덮어쓰지 않습니다.
+기본이 symlink라 저장소에서 `SKILL.md`를 고치면 다음 세션부터 바로 반영됩니다. `--copy`로 깔았다면 수정 후 `install.sh --copy --force`를 다시 실행해야 합니다 — 왜 `--force` 인지는 `bash install.sh -h` 가 말합니다.
 
 ## 새 스킬 만들기
 
@@ -24,7 +24,7 @@ $EDITOR skills/<이름>/SKILL.md      # 기존 스킬의 짜임을 본떠 쓴다
 bash install.sh <이름>
 ```
 
-- `/<이름>` 슬래시 커맨드는 디렉토리 이름에서 옵니다. frontmatter 의 `name` 은 목록에 보이는 레이블일 뿐이므로 디렉토리 이름과 같게 둡니다.
+- frontmatter 의 `name` 은 디렉토리 이름과 같게 둡니다 — 커맨드 이름이 어디서 오는지는 [`AGENTS.md`](AGENTS.md) 에 있습니다.
 - `description`은 Claude가 "이 스킬을 띄울지" 판단하는 유일한 근거입니다. 무엇을 하는지 + 어떤 상황/표현에서 트리거되는지를 같이 적으세요.
 - 본문은 Claude가 읽는 절차서입니다. 설명문보다 실행 가능한 단계로 씁니다.
 - 보조 파일은 스킬 디렉토리 아래 `references/`(필요할 때 읽는 문서)·`scripts/`(실행 코드)·`assets/`(산출물에 쓰는 파일)에 두고 `SKILL.md`에서 상대경로로 가리킵니다. symlink 설치라 경로가 그대로 유지됩니다.
