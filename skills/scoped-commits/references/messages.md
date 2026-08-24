@@ -53,17 +53,3 @@ git log -n 30 --format=%s -- <이 커밋이 바꾸는 파일들> \
 ## 커밋 실행
 
 해당 변경만 `git add`로 스테이징하고 커밋한다. 본문이 길면 `git commit -F -`에 heredoc으로 넘기는 것이 따옴표 처리가 없어 안전하다.
-
-## 로그 점검
-
-규약을 어긴 커밋을 커밋 시점에 잡아 주는 층은 없다. 대신 언제든 로그를 통째로 훑어 표류를 찾는다.
-
-```bash
-T='feat|fix|docs|chore|refactor|style|test|build|ci|perf|revert'
-git log --no-merges --format='%s' | grep -vE '^[A-Za-z0-9][A-Za-z0-9._/-]*: [^ ].*[^.。．｡…]$'
-git log --no-merges --format='%s' | grep -E "^($T)(\([^)]*\))?: "
-```
-
-첫 줄은 `<scope>: <설명>` 형태를 벗어난 제목과 마침표로 끝나는 제목을, 둘째 줄은 type 접두어를 찾는다. 둘째 줄은 넓게 잡으므로 그 프로젝트의 실제 영역 이름(`test/`·`build/` 를 가진 저장소의 `test:`·`build:`)은 눈으로 걸러 낸다 — 게이트가 아니라 보고서다.
-
-**잡지 못하는 것**: 제목 폭, `~다` 종결, 본문 유무와 내용, 분할이 옳은지. 그것들은 커밋을 만들 때 이 문서가 맡는다.

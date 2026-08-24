@@ -11,6 +11,7 @@
 | 의미 | [`SKILL.md`](SKILL.md) | 워킹트리를 **무엇을 한 커밋으로 묶을지**로 나눈다 |
 | 형식 | [`references/messages.md`](references/messages.md) | scope·제목·본문을 **어떻게 쓸지**. 규칙 원문이다 |
 | 재작성 | [`references/rewriting.md`](references/rewriting.md) | 이미 만들어진 커밋을 **어떻게 되돌려 다시 쓸지** |
+| 점검 | [`references/log-audit.md`](references/log-audit.md) | 이미 안착한 로그에서 **표류를 어떻게 찾을지** |
 
 읽는 시점으로 갈린 층이다. 분할이 확정되기 전에 형식 규칙을 읽으면 분할이 흔들린다.
 
@@ -71,7 +72,7 @@ gh api "repos/<owner>/<repo>/commits?per_page=100" \
 
 **규약을 어긴 커밋을 막는 것이 없다.** 스킬이 컨텍스트에 없으면 — 다른 도구가 커밋하든, 사람이 손으로 쓰든 — 아무것도 걸리지 않는다.
 
-**이미 안착한 커밋은 로그를 훑어야 찾는다.** 커밋 시점에 알려 주던 층이 없어졌으므로, 표류를 알아채는 것은 사후 점검이다 — [`references/messages.md`](references/messages.md) 의 "로그 점검". 그 점검은 형태와 type 접두어까지만 보고 폭·종결·본문은 놓친다.
+**이미 안착한 커밋은 로그를 훑어야 찾는다.** 커밋 시점에 알려 주던 층이 없어졌으므로, 표류를 알아채는 것은 사후 점검이다 — [`references/log-audit.md`](references/log-audit.md). 그 점검은 형태와 type 접두어까지만 보고 폭·종결·본문은 놓친다.
 
 **고치지 않은 것이 아니라 알고 남긴 것이다.** 어디까지 막히는지 알고 쓰는 것과 다 막힌다고 믿고 쓰는 것은 다르다.
 
@@ -80,3 +81,4 @@ gh api "repos/<owner>/<repo>/commits?per_page=100" \
 - [`SKILL.md`](SKILL.md) — 워킹트리를 커밋으로 만드는 절차. Claude Code 에서 `/scoped-commits` 로 부르거나 그냥 커밋을 요청하면 이걸 따른다
 - [`references/messages.md`](references/messages.md) — scope·제목·본문 규칙 원문. 사람이 손으로 커밋할 때도 여기가 기준이다
 - [`references/rewriting.md`](references/rewriting.md) — 이미 쓴 커밋을 다시 쓰는 두 경로와 그 대가
+- [`references/log-audit.md`](references/log-audit.md) — 이미 안착한 로그에서 표류를 찾는 grep
