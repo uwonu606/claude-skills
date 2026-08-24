@@ -102,6 +102,8 @@ Phase 1 은 셋 중 하나로 끝난다. 어느 문으로 나가는지 보고 �
 도달성 전수 탐색의 뼈대:
 
 ```
+for inv in INVARIANTS:                   # 초기 상태부터 검사한다
+    if not inv.holds(초기상태): 반례 기록 (inv, [], 초기상태)
 frontier = [(초기상태, [])]
 seen     = { key(초기상태) }
 while frontier:                          # 좁힌 범위 안에서는 반드시 빈다
