@@ -19,9 +19,11 @@
 
 ```bash
 git log -n 30 --format=%s -- <이 커밋이 바꾸는 파일들> \
-  | grep -oP '^[A-Za-z0-9][A-Za-z0-9._/-]*(?=: )' \
-  | grep -vE '^(feat|fix|chore|refactor|style|perf|revert)$'
+  | grep -oP '^[^ :()]+(?=: )' \
+  | grep -vE '^(feat|fix|chore|refactor|revert)$'
 ```
+
+거르는 것은 영역명일 수 없는 순수 분류뿐이다. `test`·`build`·`docs`·`ci`·`style`·`perf` 는 실제 영역일 수 있어 후보로 남긴다 — Linux 의 `perf:` 가 그 실례다(tools/perf, 2026-08-24 실측). 진위는 아래 diff 근거 규칙이 가린다.
 
 파일 목록을 `git diff --name-only`로 뽑는다면 `--no-renames`를 붙여라. rename 감지가 기본 켜져 있어 리네임된 파일이 새 경로로만 나오고, `git log -- <새 경로>`는 리네임 전 이력을 **에러 없이 비운다.** 옛 경로까지 pathspec에 넣어야 그 파일의 과거 scope가 보인다.
 
