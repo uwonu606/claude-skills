@@ -31,6 +31,8 @@ bash install.sh <이름>
 
 만든 것을 커밋할 때는 이 저장소의 컨벤션을 따릅니다 — 제목은 `<scope>: <설명>` 이고 본문은 필수입니다. 규칙과 설계는 [`skills/scoped-commits/README.md`](skills/scoped-commits/README.md) 에 있습니다.
 
+작업 브랜치도 컨벤션이 있습니다 — `<이니셜>/<산출물>` 로 따서 워크트리에서 작업하고 `--no-ff` 로 합칩니다. 규칙과 설계는 [`skills/topic-branch/README.md`](skills/topic-branch/README.md) 에 있습니다.
+
 ## 저장소 구성
 
 ```
