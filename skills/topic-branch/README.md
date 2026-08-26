@@ -41,12 +41,14 @@
 
 ### 이니셜은 `git config --local topic-branch.initials` 에 산다
 
-- **local 인 이유**: 2자의 유일성이 그 저장소의 기여자 집합 안에서만 정의된다. gitster 는 브랜치 100건에 고유 이니셜 36개를 쓰는데, 그 규모에서 2자를 무작위 배정하면 충돌 없을 확률이 39%뿐이다(기여자 5명 1% · 20명 25% · 40명 69%). git 이 안 부딪히는 건 이니셜이 실명에서 오고 메인테이너가 손으로 조정하기 때문이다. `--global` 로 두면 다른 저장소에서 이미 쓰이는 값을 조용히 물려받고, 그 순간 "내가 뭐했는지"가 남의 작업까지 끌어온다.
+- **local 인 이유**: 저장소마다 다른 이름을 쓸 수 있다. `--global` 로 두면 그 선택지가 없어진다.
 - **git config 에 둬도 되는 근거**: git-config 문서가 명시한다 — "Other git-related tools may and do use their own variables. When inventing new variables for use in your own tool, make sure their names do not conflict with those that are used by Git itself and other popular tools, and describe them in your documentation." 조건은 겹치지 않을 것과 문서에 적을 것 둘이다. 실측으로 git 은 모르는 키를 조용히 무시했다(`git status`·`git fsck` 경고 없음).
 - **섹션이 `topic-branch` 인 이유**: `user.*` 는 git 자신의 섹션이라(`user.name`·`user.email`·`user.signingKey`·`user.useConfigOnly`) 나중에 조용히 충돌한다. 같은 일을 하는 도구들이 전부 자기 이름을 쓴다 — git-flow 의 `gitflow.prefix.feature`, git-town 의 `git-town.branch-prefix`.
 - **핸들을 그대로 안 쓰는 이유**: `uwonu606/login-rate-limit` 25자 대 `uw/login-rate-limit` 19자. 실측 평균 브랜치명이 20.9자라 접두어가 이름 절반을 먹는다. GitHub PR 목록에는 작성자가 이미 아바타로 붙어 중복이고, 값을 버는 곳은 `git log` 뿐이다.
 
-값이 없을 때 이미 쓰인 이니셜을 뽑는 명령은 [`SKILL.md`](SKILL.md) 1단계에 있다. 브랜치가 지워진 뒤에도 머지 커밋에서 뽑히는 것을 확인했고, CLI 머지(`Merge branch 'ag/foo'`)와 GitHub PR 머지(`Merge pull request #12 from org/ag/foo`) 두 제목 형식이 다르므로 명령이 둘 다 정규화한다.
+**혼자 쓰는 저장소를 전제로 이니셜을 그냥 정한다.** 여러 사람이 같은 저장소에서 이 스킬을 쓰면 2자가 겹칠 수 있고, 겹치면 정리 판정(`--merged --list '<이니셜>/*'`)이 남의 브랜치를 끌어온다. 겹칠 확률은 작지 않다 — gitster 는 브랜치 100건에 고유 이니셜 36개를 쓰는데, 그 규모에서 2자를 무작위 배정하면 충돌 없을 확률이 39%뿐이다(기여자 5명 1% · 20명 25% · 40명 69%). git 이 안 부딪히는 건 이니셜이 실명에서 오고 메인테이너가 손으로 조정하기 때문이다.
+
+한때 `SKILL.md` 1단계가 브랜치와 머지 커밋에서 이미 쓰인 이니셜을 뽑아 피했다. 걷어 냈다 — 이 저장소들은 기여자가 1명이라 그 명령이 빈 출력만 돌려주고, 제안되는 값이 명령을 돌리든 안 돌리든 같았다. **기여자가 둘 이상이 되면 되살릴 자리가 여기다.**
 
 ### 머지는 `--no-ff` — 알고 고른 소수파
 

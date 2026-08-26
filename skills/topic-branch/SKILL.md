@@ -14,19 +14,7 @@ disable-model-invocation: false
 
 `git config --local topic-branch.initials` 를 읽는다. 값이 있으면 그것을 쓴다.
 
-없으면 이 저장소에서 이미 쓰인 이니셜을 뽑아 피한다. 브랜치가 지워진 뒤에도 머지 커밋에 이름이 남는다.
-
-```bash
-{ git branch -a --format='%(refname:short)'
-  git log --merges --format=%s \
-    | sed -nE "s/^Merge (remote-tracking )?branch '([^']+)'.*/\2/p
-s|^Merge pull request #[0-9]+ from [^/]+/||p" ; } \
-  | sed -E 's#^origin/##' | sed -nE 's#^(..)/.*#\1#p' | sort -u
-```
-
-CLI 머지·GitHub PR 머지·remote-tracking 세 형식만 읽는다. 옥토퍼스(`Merge branches 'a/x' and 'b/y'`)와 Bitbucket(`Merged in x/y (pull request #4)`)은 안 잡히고, 못 잡은 이니셜은 후보로 남아 제안될 뿐이라 사용자 확인이 걸러 낸다.
-
-`user.name` 에서 2자 후보를 만들어 제안하고, 사용자 확인을 받아 박는다.
+없으면 `user.name` 에서 2자 후보를 만들어 제안하고, 사용자 확인을 받아 박는다.
 
 ```bash
 git config --local topic-branch.initials <값>
