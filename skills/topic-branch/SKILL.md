@@ -20,7 +20,9 @@ disable-model-invocation: false
 git config --local topic-branch.initials <값>
 ```
 
-**완료 기준**: `git config --local topic-branch.initials` 가 2자 값을 돌려준다. 새로 정한 값이면 사용자 확인을 거쳤다.
+물을 수단이 없으면 후보를 그대로 박고, 무엇을 박았는지와 바꾸는 법을 보고에 담는다. 머지 커밋에 실리기 전까지는 갈아 끼우는 것이 싸다 — 그 뒤로는 로그에 남는다.
+
+**완료 기준**: `git config --local topic-branch.initials` 가 2자 값을 돌려준다. 새로 정한 값이면 사용자 확인을 거쳤거나, 물을 수단이 없어 후보를 박았다는 사실이 보고에 담겼다.
 
 ## 2. 이름을 짓는다
 
