@@ -22,6 +22,8 @@ PR 을 연다. 저장소의 PR 머지 방식이 merge commit 인지 확인하고
 gh repo view --json mergeCommitAllowed,squashMergeAllowed,rebaseMergeAllowed
 ```
 
+`gh` 가 없으면 이 확인을 건너뛰고, 머지 버튼을 누르기 전에 방식을 직접 보라고 알린다.
+
 ## 동기화
 
 PR 이 열려 있는 동안 main 이 움직여도 그대로 둔다. 충돌이 났을 때만 브랜치에서 `git merge main` 을 친다. rebase 를 고르지 않는 이유는 [`../README.md`](../README.md) 의 "동기화는 충돌이 났을 때만" 절에 있다.
