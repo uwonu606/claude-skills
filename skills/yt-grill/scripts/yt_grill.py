@@ -62,6 +62,7 @@ def metadata(url: str) -> dict:
         "duration": int(info.get("duration") or 0),
         "upload_date": f"{up[:4]}-{up[4:6]}-{up[6:8]}" if len(up) == 8 else None,
         "language": info.get("language"),
+        "chapters": [(int(c.get("start_time") or 0), c.get("title") or "") for c in (info.get("chapters") or [])],
     }
 
 
@@ -218,6 +219,7 @@ def find_saved(vid: str):
 def cmd_info(url: str):
     vid = video_id(url)
     meta = metadata(url)
+    meta.pop("chapters")  # 챕터는 transcript.md frontmatter 가 갖는다
     ts = transcript_list(vid)
     pick = pick_transcript(ts, meta["language"])
     existing = find_saved(vid)
@@ -314,9 +316,13 @@ def cmd_save(url: str, slug: str, force_whisper: bool, prefer_captions: bool):
         f"source: {source}",
         f"model: {model or '~'}",
         f"saved: {date.today().isoformat()}",
-        "---",
-        "",
     ]
+    if meta["chapters"]:
+        fm.append("chapters:")
+        fm += ["  - " + yaml_str(f"[{hms(t)}] {title}") for t, title in meta["chapters"]]
+    else:
+        fm.append("chapters: []")
+    fm += ["---", ""]
     (target / "transcript.md").write_text("\n".join(fm) + "\n".join(lines) + "\n", encoding="utf-8")
     if existing:
         print(json.dumps({"slug": slug, "dir": str(target), "replaced": "transcript.md", "source": source,
