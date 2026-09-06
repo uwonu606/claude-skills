@@ -25,16 +25,17 @@ channel: "조코딩 JoCoding"
 duration: 181                 # 초
 upload_date: 2026-08-21
 language: ko
-source: auto                  # manual | auto | whisper
+source: whisper               # manual | auto | whisper
+model: large-v3-turbo         # whisper 일 때만. large-v3-turbo(GPU) | small(CPU). 자막이면 ~
 saved: 2026-09-06
 ---
-[00:00] 네, 오늘은 AX 인재 전쟁 본선
-[00:03] 시간입니다. 제 AI 시대 인재
+[00:00] 오늘은 AX 인재 전쟁 본선 시간입니다.
+[00:04] AI 시대의 인재 정의가 많이 바뀌었잖아요.
 ```
 
-자막 큐 하나가 한 줄이다. 자동자막은 문장 중간에서 끊기고 오인식이 있다 — 그대로 둔다. 원문은 증거이고 다듬은 글은 `notes.md` 몫이다. 1시간을 넘으면 `[h:mm:ss]`.
+whisper 는 문장 하나가 한 줄이다(GPU 는 단어 타임스탬프로 문장마다 끊고, CPU small 은 5초쯤의 세그먼트). 자막은 큐 하나가 한 줄이라 문장 중간에서 끊긴다. 어느 쪽이든 오인식은 그대로 둔다 — 원문은 증거이고 다듬은 글은 `notes.md` 몫이다. 1시간을 넘으면 `[h:mm:ss]`.
 
-`source` 가 `whisper` 면 로컬 전사다. 유튜브 자동자막과 오인식 수는 비슷하고 구두점이 있다(실측).
+사람 자막 대비 글자 오류율은 자동자막 0.31, small 0.22, large-v3-turbo 0.15~0.20 (한국어 기술 강연 3개, 실측). whisper 는 영문 용어를 한글로 적는 경향이 있다.
 
 ## notes.md
 

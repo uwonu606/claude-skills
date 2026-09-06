@@ -4,11 +4,15 @@
 # ///
 """yt-grill 원문 저장 도구.
 
-    uv run yt_grill.py info <url>                     메타데이터·자막 유무·이미 저장됐는지 (JSON)
-    uv run yt_grill.py save <url> <slug> [--whisper]  transcript.md + notes.md 생성 (JSON)
-                                                      --whisper: 자막 대신 로컬 전사. 이미 저장된 영상이면
-                                                      transcript.md 만 갈아 끼우고 notes.md 는 둔다
-    uv run yt_grill.py list                           저장된 영상 목록 (markdown 표)
+    uv run yt_grill.py info <url>                 메타데이터·자막 유무·이미 저장됐는지·원문 계획 (JSON)
+    uv run yt_grill.py save <url> <slug> [플래그]  transcript.md + notes.md 생성 (JSON)
+    uv run yt_grill.py list                       저장된 영상 목록 (markdown 표)
+
+원문 계획(plan): GPU(nvidia-smi)가 있으면 whisper large-v3-turbo 로 전사(1시간에 1~2분),
+없으면 유튜브 자막(원어 수동 > 자동), 자막도 없으면 CPU whisper small(1시간에 7~12분).
+  --whisper   자막을 무시하고 전사. 이미 저장된 영상이면 transcript.md 만 갈아 끼우고 notes.md 는 둔다
+  --captions  GPU 가 있어도 자막을 먼저 쓴다
+  YT_GRILL_GPU=0  GPU 를 없는 것으로 친다
 
 저장 위치는 $YT_GRILL_HOME, 없으면 ~/video-notes.
 """
@@ -105,23 +109,54 @@ def fetch_lines(t) -> list:
     return out
 
 
-def whisper_lines(url: str):
-    """scripts/transcribe.py 를 uv 로 돌려 [mm:ss] 줄 목록과 감지 언어를 돌려준다."""
-    cmd = ["uv", "run", "-q", str(HERE / "transcribe.py"), url]
+CUDA_WITH = ["--with", "nvidia-cublas-cu12", "--with", "nvidia-cudnn-cu12"]
+
+
+def gpu_available() -> bool:
+    if os.environ.get("YT_GRILL_GPU") == "0":
+        return False
+    try:
+        r = subprocess.run(["nvidia-smi", "-L"], capture_output=True, text=True, timeout=10)
+        return r.returncode == 0 and "GPU" in r.stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+def whisper_lines(url: str, device: str):
+    """scripts/transcribe.py 를 uv 로 돌린다. 성공하면 (줄 목록, 언어, 모델), 실패하면 None."""
+    cmd = ["uv", "run", "-q"] + (CUDA_WITH if device == "cuda" else []) + [str(HERE / "transcribe.py"), url, "--device", device]
     proc = subprocess.run(cmd, stdout=subprocess.PIPE, text=True)  # stderr 는 진행 상황이라 그대로 흘린다
     if proc.returncode != 0:
-        die(f"whisper 실패 (exit {proc.returncode}) — 위 stderr 참고")
-    lang, lines = None, []
+        sys.stderr.write(f"whisper({device}) 실패, exit {proc.returncode}\n")
+        return None
+    lang, model, lines = None, None, []
     for line in proc.stdout.splitlines():
         if line.startswith("# lang "):
             lang = line.split()[2]
-            continue
-        if "\t" in line:
+        elif line.startswith("# model "):
+            model = line.split()[2]
+        elif "\t" in line:
             start, text = line.split("\t", 1)
             text = " ".join(text.split())
             if text:
                 lines.append(f"[{hms(float(start))}] {text}")
-    return lines, lang
+    return (lines, lang, model) if lines else None
+
+
+def plan_for(gpu: bool, has_captions: bool, force_whisper: bool, prefer_captions: bool) -> str:
+    """save 가 무엇을 할지. whisper-turbo(GPU) | captions | whisper-small(CPU)."""
+    if force_whisper:
+        return "whisper-turbo" if gpu else "whisper-small"
+    if gpu and not prefer_captions:
+        return "whisper-turbo"
+    if has_captions:
+        return "captions"
+    return "whisper-turbo" if gpu else "whisper-small"
+
+
+def estimate_seconds(plan: str, duration: int) -> int:
+    # 실측 rtf: turbo GPU 0.016~0.022(+로드·다운로드), small CPU 0.11~0.20
+    return {"captions": 2, "whisper-turbo": int(duration * 0.02) + 20, "whisper-small": int(duration * 0.2) + 10}[plan]
 
 
 # ---------- 저장소 ----------
@@ -186,6 +221,8 @@ def cmd_info(url: str):
     ts = transcript_list(vid)
     pick = pick_transcript(ts, meta["language"])
     existing = find_saved(vid)
+    gpu = gpu_available()
+    plan = plan_for(gpu, pick is not None, False, False)
     print(json.dumps({
         **meta,
         "duration_hms": hms(meta["duration"]),
@@ -194,12 +231,15 @@ def cmd_info(url: str):
             "generated": [t.language_code for t in ts if t.is_generated],
         },
         "pick": {"language": pick.language_code, "source": "auto" if pick.is_generated else "manual"} if pick else None,
+        "gpu": gpu,
+        "plan": plan,
+        "estimate_seconds": estimate_seconds(plan, meta["duration"]),
         "existing": {"slug": existing["slug"], "status": existing["status"]} if existing else None,
         "home": str(home()),
     }, ensure_ascii=False, indent=2))
 
 
-def cmd_save(url: str, slug: str, force_whisper: bool):
+def cmd_save(url: str, slug: str, force_whisper: bool, prefer_captions: bool):
     if not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", slug):
         die(f"slug 는 소문자·숫자·하이픈만: {slug}")
     vid = video_id(url)
@@ -227,17 +267,37 @@ def cmd_save(url: str, slug: str, force_whisper: bool):
             if target.exists():
                 die(f"디렉토리 충돌: {target}")
 
-    source, lang, lines = None, None, []
-    if not force_whisper:
-        pick = pick_transcript(transcript_list(vid), meta["language"])
-        if pick:
-            lines = fetch_lines(pick)
-            source = "auto" if pick.is_generated else "manual"
-            lang = base_lang(pick.language_code)
-    if not lines:
-        sys.stderr.write("자막이 없어 whisper 로 전사한다. 1시간 영상이면 7~8분.\n")
-        lines, lang = whisper_lines(url)
-        source = "whisper"
+    pick = None if force_whisper else pick_transcript(transcript_list(vid), meta["language"])
+    gpu = gpu_available()
+    plan = plan_for(gpu, pick is not None, force_whisper, prefer_captions)
+    source, lang, model, lines = None, None, None, []
+
+    def use_captions():
+        nonlocal source, lang, lines
+        lines = fetch_lines(pick)
+        source = "auto" if pick.is_generated else "manual"
+        lang = base_lang(pick.language_code)
+
+    def use_whisper(device):
+        nonlocal source, lang, model, lines
+        sys.stderr.write(f"whisper({device}) 전사, 예상 {estimate_seconds('whisper-turbo' if device == 'cuda' else 'whisper-small', meta['duration'])}초\n")
+        got = whisper_lines(url, device)
+        if got:
+            lines, lang, model = got
+            source = "whisper"
+
+    if plan == "captions":
+        use_captions()
+    elif plan == "whisper-turbo":
+        use_whisper("cuda")
+        if not lines and pick:  # GPU 가 죽으면 자막으로. 자막도 없으면 CPU 로
+            sys.stderr.write("GPU 전사 실패, 자막을 쓴다.\n")
+            use_captions()
+        elif not lines:
+            sys.stderr.write("GPU 전사 실패, CPU 로 다시 돈다.\n")
+            use_whisper("cpu")
+    else:
+        use_whisper("cpu")
     if not lines:
         die("원문을 한 줄도 얻지 못했다")
 
@@ -252,6 +312,7 @@ def cmd_save(url: str, slug: str, force_whisper: bool):
         f"upload_date: {meta['upload_date'] or '~'}",
         f"language: {lang or meta['language'] or '~'}",
         f"source: {source}",
+        f"model: {model or '~'}",
         f"saved: {date.today().isoformat()}",
         "---",
         "",
@@ -259,7 +320,7 @@ def cmd_save(url: str, slug: str, force_whisper: bool):
     (target / "transcript.md").write_text("\n".join(fm) + "\n".join(lines) + "\n", encoding="utf-8")
     if existing:
         print(json.dumps({"slug": slug, "dir": str(target), "replaced": "transcript.md", "source": source,
-                          "language": lang, "lines": len(lines), "chars": sum(len(l) for l in lines)},
+                          "model": model, "language": lang, "lines": len(lines), "chars": sum(len(l) for l in lines)},
                          ensure_ascii=False, indent=2))
         return
     notes = [
@@ -284,7 +345,7 @@ def cmd_save(url: str, slug: str, force_whisper: bool):
     print(json.dumps({
         "slug": slug, "dir": str(target), "title": meta["title"], "channel": meta["channel"],
         "duration_hms": hms(meta["duration"]), "language": lang or meta["language"],
-        "source": source, "lines": len(lines), "chars": sum(len(l) for l in lines),
+        "source": source, "model": model, "lines": len(lines), "chars": sum(len(l) for l in lines),
         "created_home": created_home,
     }, ensure_ascii=False, indent=2))
 
@@ -301,14 +362,17 @@ def cmd_list():
         d = str(v.get("duration", ""))
         length = hms(int(d)) if d.isdigit() else "?"
         title = str(v.get("title", "")).replace("|", "\\|")
-        print(f"| {v['slug']} | {title} | {length} | {v['status']} | {v.get('saved', '?')} | {v.get('source', '?')} |")
+        src = v.get("source", "?")
+        if src == "whisper" and v.get("model") not in (None, "~"):
+            src = f"whisper:{v['model']}"
+        print(f"| {v['slug']} | {title} | {length} | {v['status']} | {v.get('saved', '?')} | {src} |")
 
 
 def main(argv):
     if len(argv) >= 2 and argv[0] == "info":
         cmd_info(argv[1])
     elif len(argv) >= 3 and argv[0] == "save":
-        cmd_save(argv[1], argv[2], "--whisper" in argv[3:])
+        cmd_save(argv[1], argv[2], "--whisper" in argv[3:], "--captions" in argv[3:])
     elif argv[:1] == ["list"]:
         cmd_list()
     else:
