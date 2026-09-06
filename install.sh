@@ -109,6 +109,16 @@ if $UNINSTALL; then
         echo "  ! $name — $dest 는 이 저장소가 건 symlink 가 아님, 건너뜀 (--force 로 제거)" >&2
       fi
     fi
+    for agent in "$SRC_DIR/$name"/agents/*.md; do
+      [ -f "$agent" ] || continue
+      adest="$TARGET_ROOT/agents/$(basename "$agent")"
+      { [ -e "$adest" ] || [ -L "$adest" ]; } || continue
+      if claim "$adest"; then
+        echo "  - $adest"
+      else
+        echo "  ! $(basename "$agent") — $adest 는 이 저장소가 건 symlink 가 아님, 건너뜀 (--force 로 제거)" >&2
+      fi
+    done
   done
   exit 0
 fi
@@ -140,6 +150,41 @@ if [ "$installed" -eq 0 ]; then
   echo "설치된 스킬 없음." >&2
   exit 1
 fi
+
+# 저장소에서 사라진 스킬의 symlink 는 걷는다 — 흡수·개명된 스킬이 옛 이름으로 남아 발동 경쟁을 하지 않게
+stale=0
+for dest in "$SKILLS_ROOT"/*; do
+  [ -L "$dest" ] || continue
+  owned "$dest" || continue
+  [ -f "$dest/SKILL.md" ] && continue
+  [ "$stale" -eq 0 ] && echo "저장소에 없는 스킬 제거:"
+  stale=$((stale + 1))
+  rm -f "$dest"
+  echo "  - $dest"
+done
+
+# 스킬 아래 agents/*.md 는 전문 에이전트 정의다 — ~/.claude/agents/<name>.md 로 건다
+AGENTS_ROOT="$TARGET_ROOT/agents"
+agents=0
+for name in "${NAMES[@]}"; do
+  for agent in "$SRC_DIR/$name"/agents/*.md; do
+    [ -f "$agent" ] || continue
+    mkdir -p "$AGENTS_ROOT"
+    dest="$AGENTS_ROOT/$(basename "$agent")"
+    if ! claim "$dest"; then
+      echo "  ! $(basename "$agent") — $dest 에 이 저장소 것이 아닌 항목이 있음, 건너뜀 (--force 로 대체)" >&2
+      continue
+    fi
+    if [ "$MODE" = symlink ]; then
+      ln -s "$agent" "$dest"
+    else
+      cp "$agent" "$dest"
+    fi
+    [ "$agents" -eq 0 ] && echo "에이전트 설치 ($MODE):"
+    agents=$((agents + 1))
+    echo "  - $dest"
+  done
+done
 
 echo ""
 echo "새 Claude Code 세션에서 /<스킬이름> 으로 사용하세요."
