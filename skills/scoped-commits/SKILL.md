@@ -10,11 +10,11 @@ disable-model-invocation: false
 
 **로그 전체가 규약을 지키는지 훑는 요청이면 [`references/log-audit.md`](references/log-audit.md)를 읽는다.** 거기서 걸린 커밋을 실제로 고치는 것은 재작성이다.
 
-**[`references/messages.md`](references/messages.md)는 4단계에 가서 읽는다.** 분할을 판정하는 동안 메시지 규칙이 컨텍스트에 있으면 분할이 흔들린다 — 같은 변경에 의미 규칙만 주면 커밋 수가 4·4·4로 일치했고, 메시지 규칙을 함께 주면 6·8·4로 흩어졌다. 3단계를 끝내기 전에 열지 마라.
+**[`references/messages.md`](references/messages.md) 는 4단계에 가서 읽는다.** 분할을 판정하는 동안 메시지 규칙이 컨텍스트에 있으면 분할이 흔들린다 — 같은 변경에 의미 규칙만 주면 커밋 수가 4·4·4 로 일치했고, 메시지 규칙을 함께 주면 6·8·4 로 흩어졌다. 3단계를 끝내기 전에 열지 마라.
 
 ## 1. 무엇이 바뀌었는지 본다
 
-`git status`와 `git diff HEAD`로 워킹트리 전체를 읽는다. 커밋되지 않은 변경 전부가 대상이다.
+`git status` 와 `git diff HEAD` 로 워킹트리 전체를 읽는다. 커밋되지 않은 변경 전부가 대상이다.
 
 **완료 기준**: 바뀐 파일이 모두 목록에 있고, 각 파일에서 무엇이 바뀌었는지 diff 수준으로 읽었다.
 
@@ -46,7 +46,7 @@ disable-model-invocation: false
 
 ## 4. 메시지를 쓰고 커밋한다
 
-이제 [`references/messages.md`](references/messages.md)를 읽는다. 거기 적힌 대로 각 커밋의 scope·제목·본문을 쓴다.
+이제 [`references/messages.md`](references/messages.md) 를 읽고, 거기 적힌 대로 각 커밋의 scope·제목·본문을 쓴다.
 
 해당 변경만 `git add`로 스테이징한 뒤 커밋한다. 본문이 길면 `git commit -F -`에 heredoc으로 넘기는 것이 따옴표 처리가 없어 안전하다.
 
