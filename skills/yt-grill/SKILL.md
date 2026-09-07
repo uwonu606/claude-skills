@@ -51,7 +51,7 @@ uv run <스킬>/scripts/yt_grill.py save <url> <slug>
 
 frontmatter 를 `status: discussing` 으로 바꾸고 `discussed` 에 오늘 날짜를 더한다. 사용자에게는 **챕터 목록과 첫 챕터 요약만** 보여주고 4단계로 간다 — 전체를 미리 펼치면 토의 전에 답을 읽는다.
 
-**완료 기준**: 챕터 3~5개가 있고 챕터마다 요약과 주장이 있으며 `status` 가 `discussing` 이다.
+**완료 기준**: 챕터가 3~5개이고 **마지막 챕터의 끝 시각이 frontmatter 의 `duration`(초) 에 닿는다** — 끝까지 읽었다는 표다. 챕터마다 요약과 주장이 있고 `status` 가 `discussing` 이다.
 
 ## 4. 챕터를 토의한다
 
