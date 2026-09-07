@@ -40,7 +40,7 @@ git rebase -i <대상의 부모>    # 대상 줄을 pick → edit
 git reset --soft HEAD~1       # 대상 커밋만 워킹트리로 되돌린다
 ```
 
-여기서 `SKILL.md` 1단계로 돌아가 절차를 그대로 밟는다. 커밋을 다 만든 뒤:
+여기서 `SKILL.md` 1단계로 돌아가 절차를 그대로 밟는다. **의미는 제목이 아니라 diff 에서 센다** — 원래 커밋의 제목이 말하지 않는 변경이 그 diff 에 들어 있을 수 있다. 커밋을 다 만든 뒤:
 
 ```bash
 git rebase --continue         # 뒤따르던 커밋을 다시 얹는다
