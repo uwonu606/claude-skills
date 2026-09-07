@@ -7,7 +7,7 @@ description: 유튜브 영상의 원문(자막·전사)을 저장하고, 토의�
 
 한 번 실행에 영상 하나를 다룬다. 원문 저장에서 멈추고 토의는 따로 시작한다 — 저장은 몇 초, 토의는 몇십 분이라 같은 자리에서 끝나지 않는다.
 
-`<스킬>` 은 이 `SKILL.md` 가 있는 디렉토리의 절대 경로다. 저장 위치는 `$YT_GRILL_HOME`, 없으면 `~/video-notes/`. 영상 하나가 `<slug>/transcript.md`(원문)와 `<slug>/notes.md`(정리)다. 형식은 [`references/layout.md`](references/layout.md). 스크립트는 `uv run` 으로 돈다 — 설치는 없고 첫 실행에 uv 캐시로 패키지를 받는다.
+`<스킬>` 은 이 `SKILL.md` 가 있는 디렉토리의 절대 경로다. 저장 위치는 `$YT_GRILL_HOME`, 없으면 `~/video-notes/`. 영상 하나가 `<slug>/transcript.md`(원문)와 `<slug>/notes.md`(정리)이고, `transcript.md` 는 스크립트만 쓴다. 스크립트는 `uv run` 으로 돈다 — 설치는 없고 첫 실행에 uv 캐시로 패키지를 받는다.
 
 ## 1. 입구를 가른다
 
@@ -31,7 +31,7 @@ uv run <스킬>/scripts/yt_grill.py save <url> <slug>
 
 플래그 둘. `--captions` 는 GPU 가 있어도 자막을 먼저 쓴다(빠른 초안이 필요할 때). `--whisper` 는 자막을 무시하고 전사하며, 이미 저장된 영상에 주면 `transcript.md` 만 갈아 끼우고 `notes.md` 는 그대로 둔다.
 
-출력의 제목·채널·길이·`source`(whisper 면 `model` 도)·줄 수를 보여준다. **어느 출처든 오인식이 섞인다**고 한 줄 덧붙인다 — 토의 중 이상한 단어는 원문 오류일 수 있다.
+출력의 제목·채널·길이·`source`(whisper 면 `model` 도)·줄 수를 보여준다. **어느 출처든 오인식이 섞인다**고 한 줄 덧붙인다 — 토의 중 이상한 단어는 원문 오류일 수 있다. `source: auto`(자동자막)면 더 그렇다: 글자 오류율 실측이 자동자막 0.31, whisper small 0.22, large-v3-turbo 0.15~0.20 이다(한국어 기술 강연 3개). whisper 는 영문 용어를 한글로 적는 쪽으로 틀린다.
 
 그리고 **"지금 토의로 들어갈까?" 한 줄 묻고 멈춘다.** 들어간다고 하면 3단계.
 
@@ -39,13 +39,13 @@ uv run <스킬>/scripts/yt_grill.py save <url> <slug>
 
 ## 3. 챕터로 뼈대를 세운다
 
-[`references/layout.md`](references/layout.md) 를 읽는다. `transcript.md` 를 **끝까지** 읽는다 — 3시간짜리도 통째로. 앞부분만 읽고 뽑은 주장은 영상의 결론을 놓친다.
+[`references/notes-format.md`](references/notes-format.md) 를 읽는다. `transcript.md` 를 **끝까지** 읽는다 — 3시간짜리도 통째로. 앞부분만 읽고 뽑은 주장은 영상의 결론을 놓친다.
 
 **챕터가 토의의 단위다.** 3~5개로 나눈다. `transcript.md` frontmatter 의 `chapters`(유튜브 챕터)는 재료지 단위가 아니다 — 3분 영상에 9개, 20분에 10개라 그대로 쓰면 잘다(실측). 제목이 화제 전환을 알려 주니 묶어서 쓰고, 없으면 원문에서 화제가 바뀌는 곳으로 나눈다.
 
 챕터마다 `notes.md` 에 쓴다:
 
-- 챕터 제목과 구간 `[mm:ss-mm:ss]`, 그 아래 요약 2~4줄(각 줄 끝에 `[mm:ss]`).
+- 챕터 제목과 구간 `[mm:ss-mm:ss]`(1시간을 넘는 영상은 `[h:mm:ss]`), 그 아래 요약 2~4줄(각 줄 끝에 `[mm:ss]`).
 - 주장 1~2개, 영상 전체로 3~5개. 고르는 기준은 셋이다: 영상이 시간을 가장 많이 쓴 것, 영상이 되풀이한 것, 다른 주장의 전제가 되는 것. 날짜·이름·수치 나열은 주장이 아니다.
 - 주장마다 `영상의 말`(원문 인용, `[mm:ss]`)을 채우고 `네 말`·`걸린 점` 은 비워 두며 `판정: 미도달 (0회)` 로 시작한다.
 
