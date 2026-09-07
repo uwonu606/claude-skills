@@ -1,6 +1,6 @@
 ---
 name: scoped-commits
-description: 커밋을 의미 단위로 나누고 scope 중심 메시지를 붙인다. 사용자가 변경을 커밋하려 하거나, 이미 쓴 커밋을 다시 나누거나, 커밋 메시지나 커밋 로그를 규약에 맞게 정리·보완하려 할 때 쓴다. revert·cherry-pick 처럼 git 이 메시지를 만든 커밋은 그대로 둔다.
+description: 커밋을 의미 단위로 나누고 scope 중심 메시지를 붙인다. 변경을 커밋할 때, 이미 쓴 커밋을 다시 나누거나 메시지를 고칠 때, 커밋 로그가 규약을 지키는지 훑을 때 쓴다.
 disable-model-invocation: false
 ---
 
