@@ -2,7 +2,7 @@
 
 작업 브랜치를 main 에 합칠 때 읽는다.
 
-머지는 두 경로 다 `--no-ff` 다 — `scoped-commits` 가 나눈 **의미 단위** 커밋과 브랜치명을 로그에 그대로 남기려는 선택이다. 근거는 [`../README.md`](../README.md) 의 "머지는 `--no-ff`" 절에 있다.
+머지는 두 경로 다 `--no-ff` 다 — `scoped-commits` 가 나눈 **의미 단위** 커밋과 브랜치명을 로그에 그대로 남기려는 선택이다.
 
 ## 로컬 경로
 
@@ -26,7 +26,7 @@ gh repo view --json mergeCommitAllowed,squashMergeAllowed,rebaseMergeAllowed
 
 ## 동기화
 
-PR 이 열려 있는 동안 main 이 움직여도 그대로 둔다. 충돌이 났을 때만 브랜치에서 `git merge main` 을 친다. rebase 를 고르지 않는 이유는 [`../README.md`](../README.md) 의 "동기화는 충돌이 났을 때만" 절에 있다.
+PR 이 열려 있는 동안 main 이 움직여도 그대로 둔다. 충돌이 났을 때만 브랜치에서 `git merge main` 을 친다 — rebase 는 이미 push 한 커밋을 다시 써서 PR 의 리뷰 이력과 어긋난다.
 
 ## 다 쓴 뒤
 
