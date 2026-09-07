@@ -2,7 +2,7 @@
 
 작업 브랜치를 main 에 합칠 때 읽는다.
 
-머지는 두 경로 다 `--no-ff` 다 — `scoped-commits` 가 나눈 **의미 단위** 커밋과 브랜치명을 로그에 그대로 남기려는 선택이다.
+두 경로 다 `--no-ff` 다. 머지 커밋이 제 제목에 브랜치명을 박아 로그에 **표식**을 남긴다 — `scoped-commits` 가 나눈 의미 단위 커밋이 어느 작업이었는지 남고, 정리의 판정이 이 표식을 읽는다.
 
 ## 로컬 경로
 
@@ -16,7 +16,7 @@ git merge --no-ff <브랜치>
 
 ## PR 경로
 
-PR 을 연다. 저장소의 PR 머지 방식이 merge commit 인지 확인하고, squash 만 켜져 있으면 사용자에게 알린다.
+PR 을 연다. 저장소의 PR 머지 방식이 merge commit 인지 확인하고, squash 만 켜져 있으면 사용자에게 알린다 — squash 는 표식을 안 남겨 정리가 그 브랜치를 못 찾는다.
 
 ```bash
 gh repo view --json mergeCommitAllowed,squashMergeAllowed,rebaseMergeAllowed
