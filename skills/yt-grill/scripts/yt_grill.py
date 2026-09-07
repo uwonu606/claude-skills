@@ -338,8 +338,6 @@ def cmd_save(url: str, slug: str, force_whisper: bool, prefer_captions: bool):
         "discussed: []",
         "---",
         "",
-        "## 내 질문",
-        "",
         "## open_questions",
         "",
     ]
