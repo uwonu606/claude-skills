@@ -73,7 +73,7 @@ frontmatter 를 `status: discussing` 으로 바꾸고 `discussed` 에 오늘 날
 
 사용자가 끊으면 — "여기까지", "그만", "다음에" — 남은 주장을 `## open_questions` 에 적고 5단계로 간다.
 
-**완료 기준**: 모든 챕터가 닫혔다 — 챕터의 주장이 전부 도달이거나 `open_questions` 에 있고 매칭까지 했다. 끊었으면 남은 주장이 전부 `open_questions` 에 있다.
+**완료 기준**: 주장마다 `판정: 도달` 이거나 그 번호가 `## open_questions` 에 있다. 닫은 챕터는 매칭까지 했다.
 
 ## 5. 마무리한다
 
