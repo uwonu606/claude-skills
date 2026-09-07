@@ -6,9 +6,8 @@ disable-model-invocation: false
 
 더러운 워킹트리를 받아 여러 개의 커밋으로 만든다. 분할을 먼저 확정하고, 확정된 뒤에야 메시지를 쓴다.
 
-**이미 만들어진 커밋을 고치는 요청이면 [`references/rewriting.md`](references/rewriting.md)를 먼저 읽는다.** 아래 절차는 커밋되지 않은 변경을 다루므로, 대상을 워킹트리로 되돌리는 것이 앞에 온다.
-
-**로그 전체가 규약을 지키는지 훑는 요청이면 [`references/log-audit.md`](references/log-audit.md)를 읽는다.** 거기서 걸린 커밋을 실제로 고치는 것은 재작성이다.
+- **이미 만들어진 커밋을 고치는 요청이면** [`references/rewriting.md`](references/rewriting.md) 를 먼저 읽는다.
+- **로그 전체가 규약을 지키는지 훑는 요청이면** [`references/log-audit.md`](references/log-audit.md) 를 읽는다.
 
 **[`references/messages.md`](references/messages.md) 는 4단계에 가서 읽는다.** 분할을 판정하는 동안 메시지 규칙이 컨텍스트에 있으면 분할이 흔들린다 — 같은 변경에 의미 규칙만 주면 커밋 수가 4·4·4 로 일치했고, 메시지 규칙을 함께 주면 6·8·4 로 흩어졌다. 3단계를 끝내기 전에 열지 마라.
 
@@ -20,7 +19,7 @@ disable-model-invocation: false
 
 ## 2. 의미 단위로 나눈다
 
-커밋 하나는 **혼자 정당화되는** 변경이다 — 그 커밋만 보고도 왜 했는지 판단할 수 있고, 왜인지를 대려고 다른 커밋을 끌어올 필요가 없다. 독립적으로 정당화되는 변경마다 하나씩 나눈다.
+커밋 하나는 **혼자 정당화되는** 변경이다 — 그 커밋만 보고도 왜 했는지 판단할 수 있고, 왜인지를 대려고 다른 커밋을 끌어올 필요가 없다. 혼자 정당화되는 변경마다 하나씩 나눈다.
 
 덜 쪼갠 것을 알아내는 신호가 둘이다.
 
@@ -48,6 +47,6 @@ disable-model-invocation: false
 
 이제 [`references/messages.md`](references/messages.md) 를 읽고, 거기 적힌 대로 각 커밋의 scope·제목·본문을 쓴다.
 
-해당 변경만 `git add`로 스테이징한 뒤 커밋한다. 본문이 길면 `git commit -F -`에 heredoc으로 넘기는 것이 따옴표 처리가 없어 안전하다.
+커밋마다 해당 변경만 `git add` 로 스테이징한 뒤 커밋한다. 본문이 길면 `git commit -F -` 에 heredoc 으로 넘기는 것이 따옴표 처리가 없어 안전하다.
 
 **완료 기준**: 워킹트리에 커밋되지 않은 변경이 남지 않았고, 만든 커밋 수가 3단계에서 정한 수와 같다.
