@@ -137,7 +137,7 @@ def main(argv):
         n = preload_cuda_libs()
         sys.stderr.write(f"CUDA 라이브러리 {n}개 preload\n")
 
-    with tempfile.TemporaryDirectory(prefix="yt-grill-") as d:
+    with tempfile.TemporaryDirectory(prefix="yt-notes-") as d:
         tmp = Path(d)
         sys.stderr.write("오디오 내려받는 중\n")
         audio = download_audio(url, tmp)

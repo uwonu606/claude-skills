@@ -2,19 +2,19 @@
 # requires-python = ">=3.10"
 # dependencies = ["yt-dlp", "youtube-transcript-api>=1.0"]
 # ///
-"""yt-grill 원문 저장 도구.
+"""yt-notes 원문 저장 도구.
 
-    uv run yt_grill.py info <url>                 메타데이터·자막 유무·이미 저장됐는지·원문 계획 (JSON)
-    uv run yt_grill.py save <url> <slug> [플래그]  transcript.md + notes.md 생성 (JSON)
-    uv run yt_grill.py list                       저장된 영상 목록 (markdown 표)
+    uv run yt_notes.py info <url>                 메타데이터·자막 유무·이미 저장됐는지·원문 계획 (JSON)
+    uv run yt_notes.py save <url> <slug> [플래그]  transcript.md + notes.md 생성 (JSON)
+    uv run yt_notes.py list                       저장된 영상 목록 (markdown 표)
 
 원문 계획(plan): GPU(nvidia-smi)가 있으면 whisper large-v3-turbo 로 전사(1시간에 1~2분),
 없으면 유튜브 자막(원어 수동 > 자동), 자막도 없으면 CPU whisper small(1시간에 7~12분).
   --whisper   자막을 무시하고 전사. 이미 저장된 영상이면 transcript.md 만 갈아 끼우고 notes.md 는 둔다
   --captions  GPU 가 있어도 자막을 먼저 쓴다
-  YT_GRILL_GPU=0  GPU 를 없는 것으로 친다
+  YT_NOTES_GPU=0  GPU 를 없는 것으로 친다
 
-저장 위치는 $YT_GRILL_HOME, 없으면 ~/video-notes.
+저장 위치는 $YT_NOTES_HOME, 없으면 ~/video-notes.
 """
 import json
 import os
@@ -29,7 +29,7 @@ USER_LANGS = ["ko", "en"]  # 원어를 못 알아냈을 때의 우선순위
 
 
 def home() -> Path:
-    return Path(os.environ.get("YT_GRILL_HOME") or "~/video-notes").expanduser()
+    return Path(os.environ.get("YT_NOTES_HOME") or "~/video-notes").expanduser()
 
 
 def die(msg: str, code: int = 1):
@@ -114,7 +114,7 @@ CUDA_WITH = ["--with", "nvidia-cublas-cu12", "--with", "nvidia-cudnn-cu12"]
 
 
 def gpu_available() -> bool:
-    if os.environ.get("YT_GRILL_GPU") == "0":
+    if os.environ.get("YT_NOTES_GPU") == "0":
         return False
     try:
         r = subprocess.run(["nvidia-smi", "-L"], capture_output=True, text=True, timeout=10)

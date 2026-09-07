@@ -1,5 +1,5 @@
 ---
-name: yt-grill
+name: yt-notes
 description: 유튜브 영상을 원문(자막·전사)으로 저장하고, 핵심과 흐름을 정리한 뒤, 사용자와 이야기하며 리서치·정정으로 이해를 채우고, 나눈 이야기를 정리로 남긴다. 유튜브 링크(youtube.com, youtu.be)를 주거나 "이 영상 정리해줘", "영상 얘기하자", "저장한 영상 이어서" 같은 요청이면 쓴다.
 ---
 
@@ -7,12 +7,12 @@ description: 유튜브 영상을 원문(자막·전사)으로 저장하고, 핵�
 
 한 번 실행에 영상 하나를 다룬다.
 
-`<스킬>` 은 이 `SKILL.md` 가 있는 디렉토리의 절대 경로다. 저장 위치는 `$YT_GRILL_HOME`, 없으면 `~/video-notes/`. 영상 하나가 `<slug>/transcript.md`(원문)와 `<slug>/notes.md`(정리)이고, `transcript.md` 는 스크립트만 쓴다.
+`<스킬>` 은 이 `SKILL.md` 가 있는 디렉토리의 절대 경로다. 저장 위치는 `$YT_NOTES_HOME`, 없으면 `~/video-notes/`. 영상 하나가 `<slug>/transcript.md`(원문)와 `<slug>/notes.md`(정리)이고, `transcript.md` 는 스크립트만 쓴다.
 
 ## 1. 입구를 가른다
 
-- **URL** — `uv run <스킬>/scripts/yt_grill.py info <url>`. `existing` 이 `null` 이면 2단계, 아니면 그 `status` 로 간다.
-- **인자 없음** — `uv run <스킬>/scripts/yt_grill.py list` 로 목록을 보여주고 하나 고르게 한다.
+- **URL** — `uv run <스킬>/scripts/yt_notes.py info <url>`. `existing` 이 `null` 이면 2단계, 아니면 그 `status` 로 간다.
+- **인자 없음** — `uv run <스킬>/scripts/yt_notes.py list` 로 목록을 보여주고 하나 고르게 한다.
 - **slug** — 그 디렉토리의 `notes.md` frontmatter 를 읽는다.
 
 `status` 가 `transcribed` 면 3단계, `discussing` 이면 4단계(남은 주제부터), `done` 이면 5단계의 재진입이다.
@@ -24,7 +24,7 @@ description: 유튜브 영상을 원문(자막·전사)으로 저장하고, 핵�
 slug 를 짓는다. 제목의 **뜻**을 영문 kebab 3~5 단어로 옮긴다 — 한국어 제목을 음역하지 않는다. 채널 이름, "영상", "강연", "완전정복" 같은 군말은 뺀다. 예: "AI 시대, 기업은 어떤 인재를 뽑을까? | 조코딩" → `ai-era-hiring`. 충돌은 스크립트가 유튜브 ID 앞 4자를 붙여 푼다.
 
 ```
-uv run <스킬>/scripts/yt_grill.py save <url> <slug>
+uv run <스킬>/scripts/yt_notes.py save <url> <slug>
 ```
 
 실행 전에 `info` 의 `plan` 과 `estimate_seconds` 를 한 줄로 말한다. 첫 실행이면 CUDA 라이브러리와 모델 3GB 를 uv 캐시로 받느라 몇 분 더 걸린다고 덧붙인다. 예상이 1분을 넘으면 `run_in_background` 로 돌리고 끝나면 이어 간다.
