@@ -1,5 +1,5 @@
 ---
-name: 흐름
+name: flow
 description: 판단을 가른 근거만 흐름으로 잇고, 디테일은 이름만 남겨 되묻는 답변
 keep-coding-instructions: true
 ---
