@@ -1,12 +1,12 @@
 # claude-skills
 
-직접 만들어 쓰는 Claude Code 스킬 모음. 스킬 하나당 디렉토리 하나, 그 안에 `SKILL.md`.
+직접 만들어 쓰는 Claude Code 스킬 모음. 스킬 하나당 디렉토리 하나, 그 안에 `SKILL.md`. 출력 스타일은 `output-styles/` 에 파일 하나씩.
 
 ## 설치
 
 ```bash
 git clone git@gh-alt:uwonu606/claude-skills.git && cd claude-skills
-bash install.sh                # skills/ 전부 ~/.claude/skills 로 symlink
+bash install.sh                # skills/ 전부 ~/.claude/skills 로, output-styles/ 는 ~/.claude/output-styles 로 symlink
 ```
 
 symlink 라 저장소에서 `SKILL.md` 를 고치면 다음 세션부터 반영된다. 일부만 설치·프로젝트 설치·복사본·제거는 `bash install.sh -h` 에 있다.
@@ -35,6 +35,12 @@ bash install.sh <이름>
 `description` 은 Claude 가 이 스킬을 띄울지 판단하는 유일한 근거다. 무엇을 하는지 + 어떤 상황·표현에서 트리거되는지를 같이 적는다.
 
 본문은 Claude 가 읽고 실행하는 절차서다. 템플릿이 아니라 기존 스킬의 짜임을 본떠 시작한다 — 단계마다 완료 기준, 보조 문서는 읽는 시점에 맞춰 `references/` 로.
+
+## 출력 스타일
+
+스킬이 "무엇을 할지"라면 출력 스타일은 "어떻게 말할지"다. 시스템 프롬프트에 붙어 매 턴 적용되고, 서브에이전트에는 안 간다 — 산출물까지 지켜야 하는 규약은 `CLAUDE.md` 에 둔다.
+
+`output-styles/<파일>.md` 하나가 스타일 하나다. frontmatter 의 `name` 이 스타일 이름이고, `keep-coding-instructions: true` 를 빼면 Claude Code 의 코딩 지침이 통째로 빠진다. 켜는 것은 `~/.claude/settings.json` 에 `"outputStyle": "<name>"` 을 적는 것이고, 새 세션이나 `/clear` 뒤에 적용된다.
 
 ## 규약
 
