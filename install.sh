@@ -10,6 +10,10 @@
 #   bash install.sh --uninstall [이름...]  # 설치 제거 (이름 없으면 전부)
 #   bash install.sh --force                # 이 저장소 것이 아닌 항목도 대체/제거
 #
+# 전체 설치(이름 없이)는 output-styles/*.md 도 ~/.claude/output-styles 로 겁니다.
+# 켜는 것은 settings.json 의 "outputStyle" 에 frontmatter 의 name 을 적는 것이고,
+# 새 세션이나 /clear 뒤에 적용됩니다.
+#
 # 기본은 symlink 설치라 저장소에서 SKILL.md를 고치면 즉시 반영됩니다.
 # --copy 로 설치한 경우에는 수정 후 install.sh --copy --force 를 다시 실행해야
 # 합니다 — 복사본은 이 저장소가 걸어 둔 symlink 가 아니어서 --force 없이는
@@ -18,6 +22,7 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC_DIR="$REPO_DIR/skills"
+STYLES_DIR="$REPO_DIR/output-styles"
 
 TARGET_ROOT="$HOME/.claude"
 UNINSTALL=false
@@ -50,7 +55,7 @@ done
 owned() {
   [ -L "$1" ] || return 1
   case "$(readlink "$1")" in
-    "$SRC_DIR"/*) return 0 ;;
+    "$SRC_DIR"/*|"$STYLES_DIR"/*) return 0 ;;
     *)            return 1 ;;
   esac
 }
@@ -87,7 +92,9 @@ if $LIST_ONLY; then
 fi
 
 # 대상 스킬 결정: 인자로 받은 이름들, 없으면 전부
+ALL=false
 if [ ${#NAMES[@]} -eq 0 ]; then
+  ALL=true
   mapfile -t NAMES < <(all_skills)
 fi
 
@@ -120,6 +127,16 @@ if $UNINSTALL; then
       fi
     done
   done
+  if $ALL; then
+    for dest in "$TARGET_ROOT/output-styles"/*.md; do
+      { [ -e "$dest" ] || [ -L "$dest" ]; } || continue
+      if claim "$dest"; then
+        echo "  - $dest"
+      else
+        echo "  ! $(basename "$dest") — $dest 는 이 저장소가 건 symlink 가 아님, 건너뜀 (--force 로 제거)" >&2
+      fi
+    done
+  fi
   exit 0
 fi
 
@@ -186,5 +203,37 @@ for name in "${NAMES[@]}"; do
   done
 done
 
+# output-styles/*.md 는 출력 스타일이다 — 전체 설치에만 ~/.claude/output-styles/<파일> 로 건다
+STYLES_ROOT="$TARGET_ROOT/output-styles"
+if $ALL; then
+  styles=0
+  for style in "$STYLES_DIR"/*.md; do
+    [ -f "$style" ] || continue
+    mkdir -p "$STYLES_ROOT"
+    dest="$STYLES_ROOT/$(basename "$style")"
+    if ! claim "$dest"; then
+      echo "  ! $(basename "$style") — $dest 에 이 저장소 것이 아닌 항목이 있음, 건너뜀 (--force 로 대체)" >&2
+      continue
+    fi
+    if [ "$MODE" = symlink ]; then
+      ln -s "$style" "$dest"
+    else
+      cp "$style" "$dest"
+    fi
+    [ "$styles" -eq 0 ] && echo "출력 스타일 설치 ($MODE):"
+    styles=$((styles + 1))
+    echo "  - $dest"
+  done
+  for dest in "$STYLES_ROOT"/*.md; do
+    [ -L "$dest" ] || continue
+    owned "$dest" || continue
+    [ -e "$dest" ] && continue
+    echo "저장소에 없는 출력 스타일 제거:"
+    rm -f "$dest"
+    echo "  - $dest"
+  done
+fi
+
 echo ""
 echo "새 Claude Code 세션에서 /<스킬이름> 으로 사용하세요."
+echo "출력 스타일은 settings.json 의 \"outputStyle\" 에 이름을 적어 켭니다."
