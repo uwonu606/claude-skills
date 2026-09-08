@@ -42,6 +42,10 @@ bash install.sh <이름>
 
 `output-styles/<파일>.md` 하나가 스타일 하나다. frontmatter 의 `name` 이 스타일 이름이고, `keep-coding-instructions: true` 를 빼면 Claude Code 의 코딩 지침이 통째로 빠진다. 켜는 것은 `~/.claude/settings.json` 에 `"outputStyle": "<name>"` 을 적는 것이고, 새 세션이나 `/clear` 뒤에 적용된다.
 
+| 스타일 | 하는 것 |
+|---|---|
+| `흐름` | 판단을 가른 근거만 흐름으로 잇고, 디테일은 끝에 이름만 남겨 사용자가 되묻게 한다 |
+
 ## 규약
 
 **커밋** — 제목은 `<scope>: <설명>`, 본문은 모든 커밋에 쓴다. 규칙은 `skills/scoped-commits/` 에 있다.
