@@ -53,7 +53,6 @@ repo: /home/ssafy/workspace/clone/unlazy
 ```markdown
 ---
 repo: /home/ssafy/workspace/clone/unlazy
-walks: [2026-09-13-whole]
 ---
 
 ## 정체
@@ -80,4 +79,4 @@ walks: [2026-09-13-whole]
 - 이름만: `test/` 아래 전부, `lib/process-tree.mjs`
 ```
 
-`## 정체` 와 `## 지도` 는 걸음 중에 쓴다. `## 옮길 것`·`## 왜`·`## 안 본 것` 은 4단계에 쓰고, 다음 걸음이 끝나면 갈아 쓴다. `walks` 에는 걸음 파일 이름을 이어 붙인다.
+`## 정체` 와 `## 지도` 는 걸음 중에 쓴다. `## 옮길 것`·`## 왜`·`## 안 본 것` 은 4단계에 쓰고, 다음 걸음이 끝나면 갈아 쓴다.
