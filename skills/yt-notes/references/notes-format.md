@@ -5,7 +5,7 @@
 id: UNzCG3lw6O0
 url: https://www.youtube.com/watch?v=UNzCG3lw6O0
 title: "Building Great Agent Skills: The Missing Manual"
-status: discussing            # transcribed | discussing | done
+status: discussing            # transcribed | discussing | confirming | done
 discussed: [2026-09-06]
 ---
 
@@ -48,6 +48,7 @@ discussed: [2026-09-06]
 - 왜 여기: 수긍인데 이유가 영상의 말 그대로 — "짧은 말이 먹힌다"
 - 네 말:
 - 되물음: "네 스킬에서 먹힌 말과 안 먹힌 말은" → "scope 는 먹혔고 내가 지은 '회차'는 처음엔 안 먹혔다"
+- 제안: "이미 쓰는 말이라 먹힌다 — 저자 문서가 pretraining 에 사는 말을 고르라고 한다" → "맞다. 내가 지은 말은 정의를 붙이고서야 먹혔다" (5단계에서 붙인 후보 → 사용자가 고르거나 고쳐 쓴 말)
 
 ## open_questions
 - 주제 3 — 사용자가 끊음 (2026-09-06)
@@ -56,4 +57,4 @@ discussed: [2026-09-06]
 
 **주제 번호는 영상 전체로 이어 붙인다** — `open_questions` 가 번호로만 가리키기 때문이다.
 
-`영상`·`왜 여기`·`네 말` 은 주제마다 늘 있고, `되물음`·`걸린 점`·`더 찾은 것`·`정정` 은 내용이 생겼을 때 더한다. `## 판정` 의 주장 번호는 `## 핵심` 의 줄 순서다.
+`영상`·`왜 여기`·`네 말` 은 주제마다 늘 있고, `되물음`·`걸린 점`·`더 찾은 것`·`정정`·`제안` 은 내용이 생겼을 때 더한다. `제안` 의 화살표 뒤 말만 `## 판정` 이나 `네 말` 로 옮긴다. `## 판정` 의 주장 번호는 `## 핵심` 의 줄 순서다.
