@@ -7,6 +7,7 @@
     uv run transcribe.py <url> --device cpu                       small int8, CPU
     uv run --with nvidia-cublas-cu12 --with nvidia-cudnn-cu12 \\
            transcribe.py <url> --device cuda                      large-v3-turbo fp16 배치, GPU
+    --prompt <text>                                               whisper initial_prompt (용어 철자 힌트)
 
 stdout: "# lang <code>", "# model <name>", "# device <cpu|cuda>", 이후 "<시작초>\\t<텍스트>" 한 줄씩.
 진행 상황은 stderr.
@@ -18,6 +19,9 @@ stdout: "# lang <code>", "# model <name>", "# device <cpu|cuda>", 이후 "<시�
 - CPU small int8: 실시간의 0.11~0.20 배, 1시간 영상 7~12분. base 는 한국어 단어가 날아가 small 이 하한.
 - 언어는 강제하지 않는다 — 제목만 한국어인 영어 영상에서 강제가 한영 뒤섞인 결과를 냈다.
 - 사람 자막 대비 글자 오류율: 자동자막 0.31, small 0.22, turbo 0.15~0.20 (한국어 기술 강연 3개).
+- initial_prompt 는 프롬프트에 든 영문 용어만 영문으로 적게 한다(2026-10-06, 34분 한국어 강연).
+  제목·설명의 용어는 거의 다 바뀌었고(LLM Wiki 5→21/21), 프롬프트에 없는 용어는 그대로 음역됐다.
+  공통 용어집을 더해도 일부만 바뀌었다(harness 0/8, Claude 2/4).
 - av 19 는 faster-whisper 의 av.open(metadata_errors=...) 를 받지 않는다. 18 까지 된다.
 """
 import sys
@@ -93,7 +97,7 @@ def split_sentences(segments):
                 yield start, text
 
 
-def run(audio: Path, device: str):
+def run(audio: Path, device: str, prompt: str | None):
     import time
     from faster_whisper import WhisperModel
     t0 = time.time()
@@ -103,14 +107,14 @@ def run(audio: Path, device: str):
         pipe = BatchedInferencePipeline(model=model)
 
         def transcribe(vad):
-            segs, info = pipe.transcribe(str(audio), vad_filter=vad, batch_size=CUDA_BATCH, word_timestamps=True)
+            segs, info = pipe.transcribe(str(audio), vad_filter=vad, initial_prompt=prompt, batch_size=CUDA_BATCH, word_timestamps=True)
             return split_sentences(segs), info
         name = CUDA_MODEL
     else:
         model = WhisperModel(CPU_MODEL, device="cpu", compute_type=CPU_COMPUTE)
 
         def transcribe(vad):
-            segs, info = model.transcribe(str(audio), vad_filter=vad)
+            segs, info = model.transcribe(str(audio), vad_filter=vad, initial_prompt=prompt)
             return ((s.start, s.text.strip()) for s in segs), info
         name = CPU_MODEL
     sys.stderr.write(f"모델 로드 {time.time() - t0:.1f}초\n")
@@ -134,6 +138,7 @@ def main(argv):
     device = argv[argv.index("--device") + 1] if "--device" in argv else "cpu"
     if device not in ("cpu", "cuda"):
         sys.exit(f"--device 는 cpu 또는 cuda: {device}")
+    prompt = argv[argv.index("--prompt") + 1] if "--prompt" in argv else None
     if device == "cuda":
         n = preload_cuda_libs()
         sys.stderr.write(f"CUDA 라이브러리 {n}개 preload\n")
@@ -143,7 +148,7 @@ def main(argv):
         sys.stderr.write("오디오 내려받는 중\n")
         audio = download_audio(url, tmp)
         sys.stderr.write(f"whisper {CUDA_MODEL if device == 'cuda' else CPU_MODEL} ({device}) 전사 중, {audio.stat().st_size // 1024} KiB\n")
-        lang, name, segs = run(audio, device)
+        lang, name, segs = run(audio, device, prompt)
     print(f"# lang {lang}")
     print(f"# model {name}")
     print(f"# device {device}")

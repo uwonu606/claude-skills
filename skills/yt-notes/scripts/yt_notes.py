@@ -14,6 +14,8 @@
   --captions  GPU 가 있어도 자막을 먼저 쓴다
   YT_NOTES_GPU=0  GPU 를 없는 것으로 친다
 
+whisper 에는 제목과 설명 속 영문 용어를 철자 힌트(initial_prompt)로 준다.
+
 저장 위치는 $YT_NOTES_HOME, 없으면 ~/video-notes.
 """
 import json
@@ -25,6 +27,7 @@ from datetime import date
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+PROMPT_MAX_CHARS = 400  # whisper 는 프롬프트의 마지막 223 토큰만 쓴다
 USER_LANGS = ["ko", "en"]  # 원어를 못 알아냈을 때의 우선순위
 
 
@@ -62,6 +65,7 @@ def metadata(url: str) -> dict:
         "duration": int(info.get("duration") or 0),
         "upload_date": f"{up[:4]}-{up[4:6]}-{up[6:8]}" if len(up) == 8 else None,
         "language": info.get("language"),
+        "description": info.get("description") or "",
         "chapters": [(int(c.get("start_time") or 0), c.get("title") or "") for c in (info.get("chapters") or [])],
     }
 
@@ -123,9 +127,17 @@ def gpu_available() -> bool:
         return False
 
 
-def whisper_lines(url: str, device: str):
+def whisper_prompt(meta: dict) -> str:
+    latin_terms = re.findall(r"[A-Za-z][A-Za-z0-9.+#-]*(?: [A-Z][A-Za-z0-9.+#-]*)*", meta["description"])
+    terms = list(dict.fromkeys(t.rstrip(".") for t in latin_terms))
+    prompt = meta["title"] + (". " + ", ".join(terms) + "." if terms else "")
+    return prompt[:PROMPT_MAX_CHARS]
+
+
+def whisper_lines(url: str, device: str, prompt: str):
     """scripts/transcribe.py 를 uv 로 돌린다. 성공하면 (줄 목록, 언어, 모델), 실패하면 None."""
-    cmd = ["uv", "run", "-q"] + (CUDA_WITH if device == "cuda" else []) + [str(HERE / "transcribe.py"), url, "--device", device]
+    cmd = (["uv", "run", "-q"] + (CUDA_WITH if device == "cuda" else [])
+           + [str(HERE / "transcribe.py"), url, "--device", device, "--prompt", prompt])
     proc = subprocess.run(cmd, stdout=subprocess.PIPE, text=True)  # stderr 는 진행 상황이라 그대로 흘린다
     if proc.returncode != 0:
         sys.stderr.write(f"whisper({device}) 실패, exit {proc.returncode}\n")
@@ -220,6 +232,7 @@ def cmd_info(url: str):
     vid = video_id(url)
     meta = metadata(url)
     meta.pop("chapters")  # 챕터는 transcript.md frontmatter 가 갖는다
+    meta.pop("description")
     ts = transcript_list(vid)
     pick = pick_transcript(ts, meta["language"])
     existing = find_saved(vid)
@@ -283,7 +296,7 @@ def cmd_save(url: str, slug: str, force_whisper: bool, prefer_captions: bool):
     def use_whisper(device):
         nonlocal source, lang, model, lines
         sys.stderr.write(f"whisper({device}) 전사, 예상 {estimate_seconds('whisper-turbo' if device == 'cuda' else 'whisper-small', meta['duration'])}초\n")
-        got = whisper_lines(url, device)
+        got = whisper_lines(url, device, whisper_prompt(meta))
         if got:
             lines, lang, model = got
             source = "whisper"
