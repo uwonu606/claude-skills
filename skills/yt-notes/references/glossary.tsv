@@ -1,0 +1,93 @@
+# 음역<TAB>영문. yt_notes.py save 가 원문에 적용한다. 긴 항목이 먼저 맞고, 한글 낱말 중간에서는 맞지 않는다.
+# 다른 낱말과 겹치는 짧은 음역은 조사를 붙여 넣는다 (깃에, 깃으로).
+안드레 카파씨	Andrej Karpathy
+안드레 카파 씨	Andrej Karpathy
+안드레카파 씨	Andrej Karpathy
+안드레 카파시	Andrej Karpathy
+세컨브레인	Second Brain
+세컨드 브레인	Second Brain
+클러드 코드	Claude Code
+클로드 코드	Claude Code
+클러드	Claude
+클로드	Claude
+코덱스	Codex
+오픈클로	OpenClaw
+헤르메스 에이전트	Hermes Agent
+옵시디언	Obsidian
+오픈바이킹스	OpenViking
+오픈바이킹	OpenViking
+바이킹 땡땡	viking://
+슬랙	Slack
+구글 닥스	Google Docs
+깃허브	GitHub
+깃에	Git에
+깃으로	Git으로
+깃을	Git을
+깃이	Git이
+Git 내포	Git repo
+LLM 위키	LLM Wiki
+레그	RAG
+하네스	harness
+에이전치닷 MD	AGENTS.md
+에이전츠닷 MD	AGENTS.md
+에이전츠	agents
+에이전트	agent
+컨텍스트	context
+날리지 베이스	knowledge base
+날리지 컨텍스트	Knowledge Context
+날리지	knowledge
+스킬	skill
+플러그인	plugin
+시스템 프롬프트	system prompt
+프론트메터	frontmatter
+프론트매터	frontmatter
+마크다운	Markdown
+인덱스	index
+레이어	layer
+스키마	schema
+인제스트	ingest
+리트리벌	retrieval
+쿼리타임	query time
+라이트타임	write time
+기스트	Gist
+로우 데이터 소스	raw data source
+소스 오브 트루스	source of truth
+청크	chunk
+볼트	vault
+워커스페이스	workspace
+워크스페이스	workspace
+워커	worker
+레포지토리	repository
+리포지토리	repository
+코드 오너	code owner
+롤백	rollback
+머지	merge
+싱크	sync
+메타 데이터	metadata
+메타데이터	metadata
+벡터 DB	vector DB
+벡터 인덱스	vector index
+인베딩	embedding
+임베딩	embedding
+파서	parser
+재기 검색	grep 검색
+에비던스	evidence
+멤버스	members
+소스스	sources
+언더바 프라이빗	_private
+토큰	token
+거버넌스	governance
+템플레이트	template
+익스텐션	extension
+Agents.MD	AGENTS.md
+위키	wiki
+메모리	memory
+리소스	resource
+디렉토리	directory
+파이프라인	pipeline
+도큐먼트	document
+스토리지	storage
+세션	session
+맵핑	mapping
+매핑	mapping
+레퍼런스	reference

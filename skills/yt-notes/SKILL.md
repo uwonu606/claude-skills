@@ -35,6 +35,8 @@ uv run <스킬>/scripts/yt_notes.py save <url> <slug>
 
 출력의 제목·채널·길이·`source`(whisper 면 `model` 도)·줄 수를 보여준다. **어느 출처든 오인식이 섞이고 자동자막이 가장 심하다**고 한 줄 덧붙인다 — 이야기 중 이상한 단어는 원문 오류일 수 있고, whisper 는 영문 용어를 한글로 적는 쪽으로 틀린다.
 
+영문 용어는 영문으로 남긴다. 스크립트가 제목·설명의 영문 용어를 whisper 힌트로 주고, 남은 음역은 [`references/glossary.tsv`](references/glossary.tsv) 로 바꾼다(`glossary_hits` 가 바꾼 횟수). 원문을 읽다 음역이 남은 걸 보면 그 표에 `음역<TAB>영문` 한 줄을 더하고 `save <url> <slug> --whisper` 로 다시 받는다 — `transcript.md` 를 손으로 고치지 않는다.
+
 그리고 **"지금 정리로 들어갈까?" 한 줄 묻고 멈춘다.** 들어간다고 하면 3단계 — 저장은 몇 초, 정리와 이야기는 몇십 분이라 같은 자리에서 끝나지 않는다.
 
 **완료 기준**: `<home>/<slug>/transcript.md` 와 `notes.md` 가 있고, 사용자가 제목·길이·원문 출처를 받았다.
