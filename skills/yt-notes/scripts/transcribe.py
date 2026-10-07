@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.10,<3.13"
-# dependencies = ["yt-dlp", "faster-whisper"]
+# dependencies = ["yt-dlp", "faster-whisper", "av<19"]
 # ///
 """유튜브 영상을 로컬 whisper 로 전사한다. 과금 없음.
 
@@ -18,6 +18,7 @@ stdout: "# lang <code>", "# model <name>", "# device <cpu|cuda>", 이후 "<시�
 - CPU small int8: 실시간의 0.11~0.20 배, 1시간 영상 7~12분. base 는 한국어 단어가 날아가 small 이 하한.
 - 언어는 강제하지 않는다 — 제목만 한국어인 영어 영상에서 강제가 한영 뒤섞인 결과를 냈다.
 - 사람 자막 대비 글자 오류율: 자동자막 0.31, small 0.22, turbo 0.15~0.20 (한국어 기술 강연 3개).
+- av 19 는 faster-whisper 의 av.open(metadata_errors=...) 를 받지 않는다. 18 까지 된다.
 """
 import sys
 import tempfile
