@@ -15,6 +15,7 @@
   YT_NOTES_GPU=0  GPU 를 없는 것으로 친다
 
 whisper 에는 제목과 설명 속 영문 용어를 철자 힌트(initial_prompt)로 준다.
+그래도 남는 한글 음역은 references/glossary.tsv(음역<TAB>영문)로 바꾼다. 자막에도 같은 표를 쓴다.
 
 저장 위치는 $YT_NOTES_HOME, 없으면 ~/video-notes.
 """
@@ -27,6 +28,7 @@ from datetime import date
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+GLOSSARY = HERE.parent / "references" / "glossary.tsv"
 PROMPT_MAX_CHARS = 400  # whisper 는 프롬프트의 마지막 223 토큰만 쓴다
 USER_LANGS = ["ko", "en"]  # 원어를 못 알아냈을 때의 우선순위
 
@@ -132,6 +134,31 @@ def whisper_prompt(meta: dict) -> str:
     terms = list(dict.fromkeys(t.rstrip(".") for t in latin_terms))
     prompt = meta["title"] + (". " + ", ".join(terms) + "." if terms else "")
     return prompt[:PROMPT_MAX_CHARS]
+
+
+def load_glossary() -> dict:
+    if not GLOSSARY.exists():
+        return {}
+    pairs = {}
+    for line in GLOSSARY.read_text(encoding="utf-8").splitlines():
+        if "\t" in line and not line.startswith("#"):
+            src, dst = line.split("\t", 1)
+            pairs[src.strip()] = dst.strip()
+    return pairs
+
+
+def apply_glossary(lines: list, pairs: dict) -> tuple:
+    """음역을 영문으로 바꾼다. 한글 낱말 중간에서 시작하는 일치는 건너뛴다. (바뀐 줄 목록, 바꾼 횟수)."""
+    if not pairs:
+        return lines, 0
+    longest_first = sorted(pairs, key=len, reverse=True)
+    pattern = re.compile(r"(?<![가-힣])(" + "|".join(map(re.escape, longest_first)) + ")")
+    out, hits = [], 0
+    for line in lines:
+        new, n = pattern.subn(lambda m: pairs[m.group(1)], line)
+        out.append(new)
+        hits += n
+    return out, hits
 
 
 def whisper_lines(url: str, device: str, prompt: str):
@@ -315,6 +342,7 @@ def cmd_save(url: str, slug: str, force_whisper: bool, prefer_captions: bool):
         use_whisper("cpu")
     if not lines:
         die("원문을 한 줄도 얻지 못했다")
+    lines, glossary_hits = apply_glossary(lines, load_glossary())
 
     target.mkdir(exist_ok=True)
     fm = [
@@ -328,6 +356,7 @@ def cmd_save(url: str, slug: str, force_whisper: bool, prefer_captions: bool):
         f"language: {lang or meta['language'] or '~'}",
         f"source: {source}",
         f"model: {model or '~'}",
+        f"glossary_hits: {glossary_hits}",
         f"saved: {date.today().isoformat()}",
     ]
     if meta["chapters"]:
@@ -339,7 +368,7 @@ def cmd_save(url: str, slug: str, force_whisper: bool, prefer_captions: bool):
     (target / "transcript.md").write_text("\n".join(fm) + "\n".join(lines) + "\n", encoding="utf-8")
     if existing:
         print(json.dumps({"slug": slug, "dir": str(target), "replaced": "transcript.md", "source": source,
-                          "model": model, "language": lang, "lines": len(lines), "chars": sum(len(l) for l in lines)},
+                          "model": model, "language": lang, "glossary_hits": glossary_hits, "lines": len(lines), "chars": sum(len(l) for l in lines)},
                          ensure_ascii=False, indent=2))
         return
     notes = [
@@ -358,7 +387,7 @@ def cmd_save(url: str, slug: str, force_whisper: bool, prefer_captions: bool):
     print(json.dumps({
         "slug": slug, "dir": str(target), "title": meta["title"], "channel": meta["channel"],
         "duration_hms": hms(meta["duration"]), "language": lang or meta["language"],
-        "source": source, "model": model, "lines": len(lines), "chars": sum(len(l) for l in lines),
+        "source": source, "model": model, "glossary_hits": glossary_hits, "lines": len(lines), "chars": sum(len(l) for l in lines),
         "created_home": created_home,
     }, ensure_ascii=False, indent=2))
 

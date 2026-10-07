@@ -21,7 +21,7 @@ stdout: "# lang <code>", "# model <name>", "# device <cpu|cuda>", 이후 "<시�
 - 사람 자막 대비 글자 오류율: 자동자막 0.31, small 0.22, turbo 0.15~0.20 (한국어 기술 강연 3개).
 - initial_prompt 는 프롬프트에 든 영문 용어만 영문으로 적게 한다(2026-10-06, 34분 한국어 강연).
   제목·설명의 용어는 거의 다 바뀌었고(LLM Wiki 5→21/21), 프롬프트에 없는 용어는 그대로 음역됐다.
-  공통 용어집을 더해도 일부만 바뀌었다(harness 0/8, Claude 2/4).
+  공통 용어집을 더해도 일부만 바뀌었다(harness 0/8, Claude 2/4) — 나머지는 yt_notes.py 의 glossary 치환이 맡는다.
 - av 19 는 faster-whisper 의 av.open(metadata_errors=...) 를 받지 않는다. 18 까지 된다.
 """
 import sys
