@@ -1,0 +1,170 @@
+{
+  "model": "llama3.1:8b",
+  "passage": "아침에 민수는 우산을 집에 두고 출근했다. 점심 무렵 비가 쏟아졌다. 그래서 민수는 퇴근길에 옷이 다 젖었다. 민수는 편의점에서 우산을 샀다. 비 오는 날에는 우산을 챙겨야 한다.\n",
+  "stages": {
+    "entity_relation": {
+      "raw": "[\n    {\n        \"Head\": \"민수\",\n        \"Relation\": \"갖고/두고\",\n        \"Tail\": \"우산\"\n    },\n    {\n        \"Head\": \"민수\",\n        \"Relation\": \"가져오다\",\n        \"Tail\": \"우산\"\n    },\n    {\n        \"Head\": \"비\",\n        \"Relation\": \" 쏟아지다 \",\n        \"Tail\": \"민수\"\n    }\n]",
+      "status": "ok",
+      "triples": [
+        [
+          "entity",
+          "민수",
+          "갖고/두고",
+          "entity",
+          "우산"
+        ],
+        [
+          "entity",
+          "민수",
+          "가져오다",
+          "entity",
+          "우산"
+        ],
+        [
+          "entity",
+          "비",
+          "쏟아지다",
+          "entity",
+          "민수"
+        ]
+      ]
+    },
+    "event_entity": {
+      "raw": "[\n    {\n        \"Event\": \"민수는 우산을 집에 두고 출근했다.\",\n        \"Entity\": [\"민수\"]\n    },\n    {\n        \"Event\": \"비가 쏟아졌다.\",\n        \"Entity\": []\n    },\n    {\n        \"Event\": \"민수는 퇴근길에 옷이 다 젖었다.\",\n        \"Entity\": [\"민수\"]\n    },\n    {\n        \"Event\": \"민수는 우산을 샀다.\",\n        \"Entity\": [\"민수\"]\n    }\n]",
+      "status": "ok",
+      "triples": [
+        [
+          "event",
+          "민수는 우산을 집에 두고 출근했다.",
+          "is participated by",
+          "entity",
+          "민수"
+        ],
+        [
+          "event",
+          "민수는 퇴근길에 옷이 다 젖었다.",
+          "is participated by",
+          "entity",
+          "민수"
+        ],
+        [
+          "event",
+          "민수는 우산을 샀다.",
+          "is participated by",
+          "entity",
+          "민수"
+        ]
+      ]
+    },
+    "event_relation": {
+      "raw": "[\n    {\n        \"Head\": \"아침에 민수는 우산을 집에 두고 출근했다.\",\n        \"Relation\": \"after\",\n        \"Tail\": \"점심 무렵 비가 쏟아졌다.\"\n    },\n    {\n        \"Head\": \"점심 무렵 비가 쏟어졌다.\",\n        \"Relation\": \"because\",\n        \"Tail\": \"민수는 퇴근길에 옷이 다 젖었다.\"\n    },\n    {\n        \"Head\": \"민수는 퇴근길에 옷이 다 젖었다.\",\n        \"Relation\": \"as a result\",\n        \"Tail\": \"민수는 편의점에서 우산을 샀다.\"\n    },\n    {\n        \"Head\": \"비 오는 날에는 우산을 챙겨야 한다.\",\n        \"Relation\": \"because\",\n        \"Tail\": \"민수는 우산은 집에 두고 출근했다.\"\n    }\n]",
+      "status": "ok",
+      "triples": [
+        [
+          "event",
+          "아침에 민수는 우산을 집에 두고 출근했다.",
+          "after",
+          "event",
+          "점심 무렵 비가 쏟아졌다."
+        ],
+        [
+          "event",
+          "점심 무렵 비가 쏟어졌다.",
+          "because",
+          "event",
+          "민수는 퇴근길에 옷이 다 젖었다."
+        ],
+        [
+          "event",
+          "민수는 퇴근길에 옷이 다 젖었다.",
+          "as a result",
+          "event",
+          "민수는 편의점에서 우산을 샀다."
+        ],
+        [
+          "event",
+          "비 오는 날에는 우산을 챙겨야 한다.",
+          "because",
+          "event",
+          "민수는 우산은 집에 두고 출근했다."
+        ]
+      ]
+    }
+  },
+  "nodes": {
+    "민수": {
+      "kind": "entity",
+      "stages": [
+        1,
+        2
+      ]
+    },
+    "우산": {
+      "kind": "entity",
+      "stages": [
+        1
+      ]
+    },
+    "비": {
+      "kind": "entity",
+      "stages": [
+        1
+      ]
+    },
+    "민수는 우산을 집에 두고 출근했다.": {
+      "kind": "event",
+      "stages": [
+        2
+      ]
+    },
+    "민수는 퇴근길에 옷이 다 젖었다.": {
+      "kind": "event",
+      "stages": [
+        2,
+        3
+      ]
+    },
+    "민수는 우산을 샀다.": {
+      "kind": "event",
+      "stages": [
+        2
+      ]
+    },
+    "아침에 민수는 우산을 집에 두고 출근했다.": {
+      "kind": "event",
+      "stages": [
+        3
+      ]
+    },
+    "점심 무렵 비가 쏟아졌다.": {
+      "kind": "event",
+      "stages": [
+        3
+      ]
+    },
+    "점심 무렵 비가 쏟어졌다.": {
+      "kind": "event",
+      "stages": [
+        3
+      ]
+    },
+    "민수는 편의점에서 우산을 샀다.": {
+      "kind": "event",
+      "stages": [
+        3
+      ]
+    },
+    "비 오는 날에는 우산을 챙겨야 한다.": {
+      "kind": "event",
+      "stages": [
+        3
+      ]
+    },
+    "민수는 우산은 집에 두고 출근했다.": {
+      "kind": "event",
+      "stages": [
+        3
+      ]
+    }
+  }
+}

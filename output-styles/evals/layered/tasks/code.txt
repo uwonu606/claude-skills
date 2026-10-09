@@ -1,0 +1,1 @@
+`duration.py` 의 `parse_duration` 이 "1h30m" 처럼 단위를 이어 쓴 값을 못 읽어. format_duration 이 내는 값은 다 다시 읽을 수 있게 고쳐줘. 테스트는 `python3 test_duration.py` 가 아니라 pytest 없이 `python3 -c "import test_duration as t; t.test_single(); t.test_roundtrip()"` 로 돌려.
