@@ -18,6 +18,7 @@ STORY_MARKERS = {
     "explain-holdout": (("1,000번", "1000번", "조회했", "locust", "보냈"),
                         ("ts", "타임스탬프", "매번 다른", "키가 달라", "928")),
 }
+FORWARD_REF = re.compile(r"#\d|아래|세부|뒤에서|다음 표")
 QUOTED_EVIDENCE = {"diagnose-holdout": "0.30000000000000004"}
 INTERNAL_NAMES = ("clean_text", "visited_nodes", "temperature", "Head", "Tail", "Entity",
                   "entity_relation", "event_entity", "event_relation", "nodes", "stages")
@@ -92,6 +93,8 @@ def measure(answer, workdir, task):
         "flow_items": len(re.findall(r"^\d+\. ", layers["흐름"], re.M)),
         "expect_in_flow": bool(re.search(r"바란|바랐|기대|여야|어야 했", flow)),
         "did_first_in_flow": did_before_cause(flow, did_markers, cause_markers),
+        "flow_code_spans": len(re.findall(r"`[^`\n]+`", layers["흐름"])),
+        "flow_forward_refs": len(FORWARD_REF.findall(layers["흐름"])),
         "lead_cause": any(m in layers["lead"] for m in cause_markers),
         "internal_refs": len(FILE_LINE_REF.findall(text)) + sum(name in text for name in INTERNAL_NAMES),
         "unlabeled": unlabeled_summary_lines(layers["정리"]),
@@ -138,6 +141,16 @@ TESTS = {
     "io-line": ("explain", "내부 이름이 줄고 한 일 먼저는 줄지 않는다",
                 lambda b, c: averaged(c, "internal_refs") < averaged(b, "internal_refs")
                 and averaged(c, "did_first_in_flow") >= averaged(b, "did_first_in_flow")),
+    "preamble-removable": ("explain", "서문 줄을 빼도(cand) 흐름의 코드 이름·앞질러 가리키기가 늘지 않고 바란 것·한 일 먼저가 줄지 않는다 — 통과면 이 줄은 효과가 없다",
+                           lambda b, c: averaged(c, "flow_code_spans") <= averaged(b, "flow_code_spans") * 1.2 + 0.5
+                and averaged(c, "flow_forward_refs") <= averaged(b, "flow_forward_refs") + 0.3
+                and averaged(c, "expect_in_flow") >= averaged(b, "expect_in_flow") - 0.2
+                and averaged(c, "did_first_in_flow") >= averaged(b, "did_first_in_flow") - 0.2),
+    "preamble-removable-holdout": ("explain-holdout", "서문 줄을 빼도(cand) 흐름의 코드 이름·앞질러 가리키기가 늘지 않고 바란 것·한 일 먼저가 줄지 않는다 — 통과면 이 줄은 효과가 없다",
+                                   lambda b, c: averaged(c, "flow_code_spans") <= averaged(b, "flow_code_spans") * 1.2 + 0.5
+                                   and averaged(c, "flow_forward_refs") <= averaged(b, "flow_forward_refs") + 0.3
+                                   and averaged(c, "expect_in_flow") >= averaged(b, "expect_in_flow") - 0.2
+                                   and averaged(c, "did_first_in_flow") >= averaged(b, "did_first_in_flow") - 0.2),
 }
 
 
