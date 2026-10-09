@@ -1,0 +1,17 @@
+============================= test session starts ==============================
+collected 2 items
+
+test_pricing.py .F                                                       [100%]
+
+=================================== FAILURES ===================================
+_______________________________ test_small_items _______________________________
+
+    def test_small_items():
+>       assert order_total([0.1, 0.2]) == 0.3
+E       assert 0.30000000000000004 == 0.3
+E        +  where 0.30000000000000004 = order_total([0.1, 0.2])
+
+test_pricing.py:9: AssertionError
+=========================== short test summary info ============================
+FAILED test_pricing.py::test_small_items - assert 0.30000000000000004 == 0.3
+========================= 1 failed, 1 passed in 0.02s ==========================

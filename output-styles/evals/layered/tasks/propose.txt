@@ -1,0 +1,11 @@
+FastAPI 서버가 요청이 몰리면 타임아웃이 나. 팀에서 pool_size 를 5 에서 20 으로 올리자는 의견이 나왔어. 어떻게 생각해?
+
+설정:
+- gunicorn -w 4 -k uvicorn.workers.UvicornWorker
+- db.py: engine = create_engine(DB_URL, pool_size=5, max_overflow=0, pool_timeout=30)
+- 핸들러는 `def` (sync) 로 쓰여 있고 요청마다 `with Session(engine) as s:` 로 쿼리 하나를 한다. 쿼리 하나는 평소 200ms.
+- 부하 테스트: 동시 접속 100. DB 는 PostgreSQL, max_connections=100.
+
+로그:
+sqlalchemy.exc.TimeoutError: QueuePool limit of size 5 overflow 0 reached, connection timed out, timeout 30.00
+(같은 시각 DB 서버의 활성 커넥션은 20개, CPU 15%)
