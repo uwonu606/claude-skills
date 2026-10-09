@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 TASKS_DIR = Path(__file__).resolve().parent / "tasks"
-TASKS = ("explain", "diagnose", "propose", "procedure", "code")
+TASKS = ("explain", "diagnose", "propose", "procedure", "code", "explain-holdout", "diagnose-holdout")
 READ_ONLY = ["--disallowedTools", "Bash Edit Write NotebookEdit WebFetch WebSearch Agent"]
 CAN_EDIT = [
     "--permission-mode", "acceptEdits",

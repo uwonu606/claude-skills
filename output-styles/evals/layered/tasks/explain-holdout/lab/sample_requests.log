@@ -1,0 +1,5 @@
+web GET /products/17?ts=1728450001123 Accept-Language=ko-KR key=product:17:ko-KR:1728450001123 MISS
+web GET /products/17?ts=1728450003991 Accept-Language=ko-KR key=product:17:ko-KR:1728450003991 MISS
+app GET /products/17 Accept-Language=ko key=product:17:ko: MISS
+web GET /products/3?ts=1728450004410 Accept-Language=ko-KR key=product:3:ko-KR:1728450004410 MISS
+app GET /products/17 Accept-Language=ko key=product:17:ko: HIT

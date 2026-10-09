@@ -3,6 +3,7 @@
     python3 check.py DIR                  # 과제마다 arm 별 지표 평균
     python3 check.py DIR --test NAME      # 시험 하나의 판정 (arm 이름은 base, cand)
     python3 check.py DIR --integration    # 과제 다섯 개 전부의 판정
+    python3 check.py DIR --holdout        # 떼어 둔 과제 둘의 판정
 """
 import argparse
 import re
@@ -11,8 +12,13 @@ import sys
 from pathlib import Path
 from statistics import mean
 
-DID_MARKERS = ("따로", "새 대화", "보냈", "물었")
-CAUSE_MARKERS = ("글자", "문자열", "합치", "합쳐", "clean_text", "visited_nodes", "달라", "다르게")
+STORY_MARKERS = {
+    "explain": (("따로", "새 대화", "보냈", "물었"),
+                ("글자", "문자열", "합치", "합쳐", "clean_text", "visited_nodes", "달라", "다르게")),
+    "explain-holdout": (("1,000번", "1000번", "조회했", "locust", "보냈"),
+                        ("ts", "타임스탬프", "매번 다른", "키가 달라", "928")),
+}
+QUOTED_EVIDENCE = {"diagnose-holdout": "0.30000000000000004"}
 INTERNAL_NAMES = ("clean_text", "visited_nodes", "temperature", "Head", "Tail", "Entity",
                   "entity_relation", "event_entity", "event_relation", "nodes", "stages")
 FILE_LINE_REF = re.compile(r"[\w./-]+\.(?:md|json|py):\d+")
@@ -45,8 +51,8 @@ def first_index(text, markers):
     return min(hits) if hits else None
 
 
-def did_before_cause(flow):
-    did, cause = first_index(flow, DID_MARKERS), first_index(flow, CAUSE_MARKERS)
+def did_before_cause(flow, did_markers, cause_markers):
+    did, cause = first_index(flow, did_markers), first_index(flow, cause_markers)
     return did is not None and (cause is None or did < cause)
 
 
@@ -75,8 +81,9 @@ def code_tests_pass(workdir):
     return result.returncode == 0
 
 
-def measure(answer, workdir):
+def measure(answer, workdir, task):
     text = answer.read_text()
+    did_markers, cause_markers = STORY_MARKERS.get(task, STORY_MARKERS["explain"])
     layers = split_layers(text)
     flow = layers["흐름"] or text
     guarded, dangerous = guarded_dangerous_commands(text)
@@ -84,8 +91,8 @@ def measure(answer, workdir):
         "chars": len(text),
         "flow_items": len(re.findall(r"^\d+\. ", layers["흐름"], re.M)),
         "expect_in_flow": bool(re.search(r"바란|바랐|기대|여야|어야 했", flow)),
-        "did_first_in_flow": did_before_cause(flow),
-        "lead_cause": any(m in layers["lead"] for m in CAUSE_MARKERS),
+        "did_first_in_flow": did_before_cause(flow, did_markers, cause_markers),
+        "lead_cause": any(m in layers["lead"] for m in cause_markers),
         "internal_refs": len(FILE_LINE_REF.findall(text)) + sum(name in text for name in INTERNAL_NAMES),
         "unlabeled": unlabeled_summary_lines(layers["정리"]),
         "gam": text.count("[감]"),
@@ -94,6 +101,8 @@ def measure(answer, workdir):
         "dangerous": dangerous,
         "unguarded": dangerous - guarded,
     }
+    if task in QUOTED_EVIDENCE:
+        metrics["quotes_evidence"] = QUOTED_EVIDENCE[task] in text
     if workdir.is_dir() and (workdir / "duration.py").exists():
         metrics["code_ok"] = code_tests_pass(workdir)
     return metrics
@@ -105,7 +114,7 @@ def collect(out):
         for answer in sorted(task_dir.glob("*.md")):
             arm = answer.stem.rsplit("-", 1)[0]
             workdir = out / "work" / task_dir.name / answer.stem
-            stats.setdefault(task_dir.name, {}).setdefault(arm, []).append(measure(answer, workdir))
+            stats.setdefault(task_dir.name, {}).setdefault(arm, []).append(measure(answer, workdir, task_dir.name))
     return stats
 
 
@@ -149,6 +158,20 @@ INTEGRATION = {
 }
 
 
+# 떼어 둔 과제: 규칙은 결과를 보기 전에 정했고, 결과를 보고 layered 를 다듬지 않는다.
+HOLDOUT = {
+    "explain-holdout": ("바란 것과 한 일 먼저가 줄지 않고, 정리가 정해진 꼴이며, 30% 넘게 길어지지 않는다",
+                        lambda b, c: averaged(c, "expect_in_flow") >= averaged(b, "expect_in_flow")
+                        and averaged(c, "did_first_in_flow") >= averaged(b, "did_first_in_flow") - 0.2
+                        and averaged(c, "unlabeled") == 0
+                        and averaged(c, "chars") <= averaged(b, "chars") * 1.3),
+    "diagnose-holdout": ("실제 오류 출력을 인용하는 비율이 줄지 않고, 정리가 정해진 꼴이며, 30% 넘게 길어지지 않는다",
+                         lambda b, c: averaged(c, "quotes_evidence") >= averaged(b, "quotes_evidence")
+                         and averaged(c, "unlabeled") == 0
+                         and averaged(c, "chars") <= averaged(b, "chars") * 1.3),
+}
+
+
 def print_table(stats):
     for task, arms in stats.items():
         keys = [k for k in next(iter(arms.values()))[0]]
@@ -163,12 +186,18 @@ def main():
     parser.add_argument("out", type=Path)
     parser.add_argument("--test", choices=TESTS)
     parser.add_argument("--integration", action="store_true")
+    parser.add_argument("--holdout", action="store_true")
     args = parser.parse_args()
     stats = collect(args.out)
     print_table(stats)
     if args.integration:
         print()
         for task, (rule, passes) in INTEGRATION.items():
+            verdict = "통과" if passes(stats[task]["base"], stats[task]["cand"]) else "실패"
+            print(f"{task}: {rule} → {verdict}")
+    if args.holdout:
+        print()
+        for task, (rule, passes) in HOLDOUT.items():
             verdict = "통과" if passes(stats[task]["base"], stats[task]["cand"]) else "실패"
             print(f"{task}: {rule} → {verdict}")
     if args.test:
