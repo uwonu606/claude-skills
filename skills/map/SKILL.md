@@ -1,6 +1,7 @@
 ---
 name: map
-description: 대화를 지도 한 장(그림 위주의 HTML 페이지)으로 빠르게 그린다. 흐름을 놓쳤을 때, 큰 그림을 볼 때, 한 부분을 확대해 깊게 볼 때 쓴다.
+description: 대화를 그림 위주의 HTML 지도 한 장으로 그린다 (현재 위치 · 전체 · 확대).
+disable-model-invocation: true
 ---
 
 # 지도 한 장
