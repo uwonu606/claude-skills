@@ -2,7 +2,7 @@
 
     python3 run.py --out DIR --task explain --n 3 base=A.md cand=B.md
 
-답은 DIR/<task>/<arm>-<i>.md, 작업 폴더는 DIR/work/<task>/<arm>-<i>/ 에 남는다.
+답은 DIR/<task>/<arm>-<i>.md, 도구 호출까지 담은 기록은 같은 이름의 .jsonl, 작업 폴더는 DIR/work/<task>/<arm>-<i>/ 에 남는다.
 """
 import argparse
 import json
@@ -13,13 +13,19 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 TASKS_DIR = Path(__file__).resolve().parent / "tasks"
-TASKS = ("explain", "diagnose", "propose", "procedure", "code", "explain-holdout", "diagnose-holdout")
+TASKS = ("explain", "diagnose", "propose", "procedure", "code", "explain-holdout", "diagnose-holdout",
+         "report", "report-holdout", "fact")
 READ_ONLY = ["--disallowedTools", "Bash Edit Write NotebookEdit WebFetch WebSearch Agent"]
 CAN_EDIT = [
     "--permission-mode", "acceptEdits",
     "--allowedTools", "Bash(python3:*)",
     "--disallowedTools", "WebFetch WebSearch Agent",
 ]
+RUN_PYTHON = [
+    "--allowedTools", "Bash(python3:*)",
+    "--disallowedTools", "Edit Write NotebookEdit WebFetch WebSearch Agent",
+]
+TOOL_FLAGS = {"code": CAN_EDIT, "report": RUN_PYTHON, "report-holdout": RUN_PYTHON}
 
 
 def style_named(style_text, name):
@@ -44,16 +50,19 @@ def prepare_workdir(workdir, task, arm, style_text):
 def run_one(out, task, arm, style_text, i):
     workdir = out / "work" / task / f"{arm}-{i}"
     style_name = prepare_workdir(workdir, task, arm, style_text)
-    tool_flags = CAN_EDIT if task == "code" else READ_ONLY
+    tool_flags = TOOL_FLAGS.get(task, READ_ONLY)
     # The env var marks a nested session; claude -p refuses to start inside one.
     env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
-    command = ["claude", "-p", "--settings", json.dumps({"outputStyle": style_name}), *tool_flags]
+    command = ["claude", "-p", "--output-format", "stream-json", "--verbose",
+               "--settings", json.dumps({"outputStyle": style_name}), *tool_flags]
     prompt = (TASKS_DIR / f"{task}.txt").read_text()
     result = subprocess.run(command, input=prompt, capture_output=True, text=True,
                             cwd=workdir, env=env, timeout=900)
     answer = out / task / f"{arm}-{i}.md"
     answer.parent.mkdir(parents=True, exist_ok=True)
-    answer.write_text(result.stdout)
+    answer.with_suffix(".jsonl").write_text(result.stdout)
+    events = [json.loads(line) for line in result.stdout.splitlines() if line.startswith("{")]
+    answer.write_text(next((e.get("result", "") for e in events if e.get("type") == "result"), ""))
     return answer
 
 
