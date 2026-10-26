@@ -13,13 +13,19 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 TASKS_DIR = Path(__file__).resolve().parent / "tasks"
-TASKS = ("explain", "diagnose", "propose", "procedure", "code", "explain-holdout", "diagnose-holdout")
+TASKS = ("explain", "diagnose", "propose", "procedure", "code", "explain-holdout", "diagnose-holdout",
+         "report", "report-holdout", "fact")
 READ_ONLY = ["--disallowedTools", "Bash Edit Write NotebookEdit WebFetch WebSearch Agent"]
 CAN_EDIT = [
     "--permission-mode", "acceptEdits",
     "--allowedTools", "Bash(python3:*)",
     "--disallowedTools", "WebFetch WebSearch Agent",
 ]
+RUN_PYTHON = [
+    "--allowedTools", "Bash(python3:*)",
+    "--disallowedTools", "Edit Write NotebookEdit WebFetch WebSearch Agent",
+]
+TOOL_FLAGS = {"code": CAN_EDIT, "report": RUN_PYTHON, "report-holdout": RUN_PYTHON}
 
 
 def style_named(style_text, name):
@@ -44,7 +50,7 @@ def prepare_workdir(workdir, task, arm, style_text):
 def run_one(out, task, arm, style_text, i):
     workdir = out / "work" / task / f"{arm}-{i}"
     style_name = prepare_workdir(workdir, task, arm, style_text)
-    tool_flags = CAN_EDIT if task == "code" else READ_ONLY
+    tool_flags = TOOL_FLAGS.get(task, READ_ONLY)
     # The env var marks a nested session; claude -p refuses to start inside one.
     env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
     command = ["claude", "-p", "--output-format", "stream-json", "--verbose",
