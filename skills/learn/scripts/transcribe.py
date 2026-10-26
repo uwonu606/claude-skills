@@ -12,17 +12,10 @@
 stdout: "# lang <code>", "# model <name>", "# device <cpu|cuda>", 이후 "<시작초>\\t<텍스트>" 한 줄씩.
 진행 상황은 stderr.
 
-실측(2026-09-06, RTX 4070 Laptop / Core Ultra 9 185H):
-- GPU large-v3-turbo fp16 + BatchedInferencePipeline: 28분 영상 26~30초(rtf 0.016~0.018), VRAM 3.3GB(batch 8).
-  비배치 fp16 은 turbo·large-v3 모두 "CUDA illegal memory access" 로 결정적으로 죽는다 — 배치만 쓴다.
-  배치 출력은 세그먼트가 약 30초 단위다.
-- CPU small int8: 실시간의 0.11~0.20 배, 1시간 영상 7~12분. base 는 한국어 단어가 날아가 small 이 하한.
-- 언어는 강제하지 않는다 — 제목만 한국어인 영어 영상에서 강제가 한영 뒤섞인 결과를 냈다.
-- 사람 자막 대비 글자 오류율: 자동자막 0.31, small 0.22, turbo 0.15~0.20 (한국어 기술 강연 3개).
-- initial_prompt 는 프롬프트에 든 영문 용어만 영문으로 적게 한다(2026-10-06, 34분 한국어 강연).
-  제목·설명의 용어는 거의 다 바뀌었고(LLM Wiki 5→21/21), 프롬프트에 없는 용어는 그대로 음역됐다.
-  공통 용어집을 더해도 일부만 바뀌었다(harness 0/8, Claude 2/4) — 나머지는 yt_notes.py 의 glossary 치환이 맡는다.
-- av 19 는 faster-whisper 의 av.open(metadata_errors=...) 를 받지 않는다. 18 까지 된다.
+GPU 는 BatchedInferencePipeline 으로만 돈다. 비배치 fp16 은 turbo·large-v3 모두 "CUDA illegal memory access" 로 죽는다.
+CPU 는 small 이 하한이다. base 는 한국어 낱말을 빠뜨린다.
+언어는 강제하지 않는다. 제목만 한국어인 영어 영상에서 강제하면 한영이 뒤섞인다.
+av 19 는 faster-whisper 의 av.open(metadata_errors=...) 를 받지 않는다.
 """
 import sys
 import tempfile
