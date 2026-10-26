@@ -2,7 +2,7 @@
 
     python3 run.py --out DIR --task explain --n 3 base=A.md cand=B.md
 
-답은 DIR/<task>/<arm>-<i>.md, 작업 폴더는 DIR/work/<task>/<arm>-<i>/ 에 남는다.
+답은 DIR/<task>/<arm>-<i>.md, 도구 호출까지 담은 기록은 같은 이름의 .jsonl, 작업 폴더는 DIR/work/<task>/<arm>-<i>/ 에 남는다.
 """
 import argparse
 import json
@@ -47,13 +47,16 @@ def run_one(out, task, arm, style_text, i):
     tool_flags = CAN_EDIT if task == "code" else READ_ONLY
     # The env var marks a nested session; claude -p refuses to start inside one.
     env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
-    command = ["claude", "-p", "--settings", json.dumps({"outputStyle": style_name}), *tool_flags]
+    command = ["claude", "-p", "--output-format", "stream-json", "--verbose",
+               "--settings", json.dumps({"outputStyle": style_name}), *tool_flags]
     prompt = (TASKS_DIR / f"{task}.txt").read_text()
     result = subprocess.run(command, input=prompt, capture_output=True, text=True,
                             cwd=workdir, env=env, timeout=900)
     answer = out / task / f"{arm}-{i}.md"
     answer.parent.mkdir(parents=True, exist_ok=True)
-    answer.write_text(result.stdout)
+    answer.with_suffix(".jsonl").write_text(result.stdout)
+    events = [json.loads(line) for line in result.stdout.splitlines() if line.startswith("{")]
+    answer.write_text(next((e.get("result", "") for e in events if e.get("type") == "result"), ""))
     return answer
 
 
