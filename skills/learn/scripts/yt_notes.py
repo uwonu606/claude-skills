@@ -2,22 +2,21 @@
 # requires-python = ">=3.10"
 # dependencies = ["yt-dlp", "youtube-transcript-api>=1.0"]
 # ///
-"""yt-notes 원문 저장 도구.
+"""learn 스킬의 유튜브 원문 저장 도구.
 
     uv run yt_notes.py info <url>                 메타데이터·자막 유무·이미 저장됐는지·원문 계획 (JSON)
-    uv run yt_notes.py save <url> <slug> [플래그]  transcript.md + notes.md 생성 (JSON)
-    uv run yt_notes.py list                       저장된 영상 목록 (markdown 표)
+    uv run yt_notes.py save <url> <slug> [플래그]  <slug>/sources/yt-<id>.md 생성 (JSON)
 
 원문 계획(plan): GPU(nvidia-smi)가 있으면 whisper large-v3-turbo 로 전사(1시간에 1~2분),
 없으면 유튜브 자막(원어 수동 > 자동), 자막도 없으면 CPU whisper small(1시간에 7~12분).
-  --whisper   자막을 무시하고 전사. 이미 저장된 영상이면 transcript.md 만 갈아 끼우고 notes.md 는 둔다
+  --whisper   자막을 무시하고 전사. 이미 저장된 영상이면 그 전사 파일을 갈아 끼운다
   --captions  GPU 가 있어도 자막을 먼저 쓴다
   YT_NOTES_GPU=0  GPU 를 없는 것으로 친다
 
 whisper 에는 제목과 설명 속 영문 용어를 철자 힌트(initial_prompt)로 준다.
 그래도 남는 한글 음역은 references/glossary.tsv(음역<TAB>영문)로 바꾼다. 자막에도 같은 표를 쓴다.
 
-저장 위치는 $YT_NOTES_HOME, 없으면 ~/video-notes.
+저장 위치는 $LEARN_HOME, 없으면 ~/learn-notes. 주제 지도(map.md)는 스킬이 쓴다.
 """
 import json
 import os
@@ -34,7 +33,7 @@ USER_LANGS = ["ko", "en"]  # 원어를 못 알아냈을 때의 우선순위
 
 
 def home() -> Path:
-    return Path(os.environ.get("YT_NOTES_HOME") or "~/video-notes").expanduser()
+    return Path(os.environ.get("LEARN_HOME") or "~/learn-notes").expanduser()
 
 
 def die(msg: str, code: int = 1):
@@ -201,55 +200,23 @@ def estimate_seconds(plan: str, duration: int) -> int:
 
 # ---------- 저장소 ----------
 
-def read_frontmatter(path: Path) -> dict:
-    if not path.exists():
-        return {}
-    text = path.read_text(encoding="utf-8")
-    m = re.match(r"^---\n(.*?)\n---\n", text, re.S)
-    if not m:
-        return {}
-    fm = {}
-    for line in m.group(1).splitlines():
-        if ":" not in line or line.startswith(" "):
-            continue
-        k, v = line.split(":", 1)
-        v = v.strip()
-        if v.startswith('"'):
-            try:
-                v = json.loads(v)
-            except Exception:
-                pass
-        fm[k.strip()] = v
-    return fm
-
-
 def yaml_str(s) -> str:
     if s is None:
         return "~"
     return json.dumps(s, ensure_ascii=False)
 
 
-def saved_videos() -> list:
-    root = home()
-    if not root.exists():
-        return []
-    out = []
-    for d in sorted(root.iterdir()):
-        if not d.is_dir() or d.name.startswith("."):
-            continue
-        t = read_frontmatter(d / "transcript.md")
-        if not t.get("id"):
-            continue
-        n = read_frontmatter(d / "notes.md")
-        out.append({"slug": d.name, **t, "status": n.get("status", "transcribed"),
-                    "discussed": n.get("discussed", "[]")})
-    return out
+def source_name(vid: str) -> str:
+    return f"yt-{vid}.md"
 
 
 def find_saved(vid: str):
-    for v in saved_videos():
-        if v["id"] == vid:
-            return v
+    """이 영상의 전사가 든 주제. {slug, path} 또는 None."""
+    root = home()
+    if not root.exists():
+        return None
+    for path in sorted(root.glob(f"*/sources/{source_name(vid)}")):
+        return {"slug": path.parent.parent.name, "path": str(path)}
     return None
 
 
@@ -258,7 +225,7 @@ def find_saved(vid: str):
 def cmd_info(url: str):
     vid = video_id(url)
     meta = metadata(url)
-    meta.pop("chapters")  # 챕터는 transcript.md frontmatter 가 갖는다
+    meta.pop("chapters")  # 챕터는 전사 파일 frontmatter 가 갖는다
     meta.pop("description")
     ts = transcript_list(vid)
     pick = pick_transcript(ts, meta["language"])
@@ -276,7 +243,7 @@ def cmd_info(url: str):
         "gpu": gpu,
         "plan": plan,
         "estimate_seconds": estimate_seconds(plan, meta["duration"]),
-        "existing": {"slug": existing["slug"], "status": existing["status"]} if existing else None,
+        "existing": existing,
         "home": str(home()),
     }, ensure_ascii=False, indent=2))
 
@@ -287,7 +254,7 @@ def cmd_save(url: str, slug: str, force_whisper: bool, prefer_captions: bool):
     vid = video_id(url)
     existing = find_saved(vid)
     if existing and not force_whisper:
-        die(f"이미 저장됨: {existing['slug']} (status={existing['status']})", 2)
+        die(f"이미 저장됨: {existing['path']}", 2)
     meta = metadata(url)
 
     root = home()
@@ -296,18 +263,11 @@ def cmd_save(url: str, slug: str, force_whisper: bool, prefer_captions: bool):
     if created_home:
         (root / ".gitignore").write_text(
             "# 자막·전사 원문은 남의 저작물이라 올리지 않는다. URL 이 살아 있으면 다시 받는다.\n"
-            "*/transcript.md\n", encoding="utf-8")
+            "*/sources/yt-*.md\n", encoding="utf-8")
 
-    if existing:  # --whisper 로 원문만 갈아 끼운다. notes.md 는 건드리지 않는다
+    if existing:  # --whisper 로 원문만 갈아 끼운다
         slug = existing["slug"]
-        target = root / slug
-    else:
-        target = root / slug
-        if target.exists():
-            slug = f"{slug}-{re.sub(r'[^a-z0-9]', '', vid.lower())[:4]}"
-            target = root / slug
-            if target.exists():
-                die(f"디렉토리 충돌: {target}")
+    target = root / slug / "sources" / source_name(vid)
 
     pick = None if force_whisper else pick_transcript(transcript_list(vid), meta["language"])
     gpu = gpu_available()
@@ -344,7 +304,7 @@ def cmd_save(url: str, slug: str, force_whisper: bool, prefer_captions: bool):
         die("원문을 한 줄도 얻지 못했다")
     lines, glossary_hits = apply_glossary(lines, load_glossary())
 
-    target.mkdir(exist_ok=True)
+    target.parent.mkdir(parents=True, exist_ok=True)
     fm = [
         "---",
         f"id: {meta['id']}",
@@ -365,49 +325,13 @@ def cmd_save(url: str, slug: str, force_whisper: bool, prefer_captions: bool):
     else:
         fm.append("chapters: []")
     fm += ["---", ""]
-    (target / "transcript.md").write_text("\n".join(fm) + "\n".join(lines) + "\n", encoding="utf-8")
-    if existing:
-        print(json.dumps({"slug": slug, "dir": str(target), "replaced": "transcript.md", "source": source,
-                          "model": model, "language": lang, "glossary_hits": glossary_hits, "lines": len(lines), "chars": sum(len(l) for l in lines)},
-                         ensure_ascii=False, indent=2))
-        return
-    notes = [
-        "---",
-        f"id: {meta['id']}",
-        f"url: {meta['url']}",
-        f"title: {yaml_str(meta['title'])}",
-        "status: transcribed",
-        "discussed: []",
-        "---",
-        "",
-        "## open_questions",
-        "",
-    ]
-    (target / "notes.md").write_text("\n".join(notes), encoding="utf-8")
+    target.write_text("\n".join(fm) + "\n".join(lines) + "\n", encoding="utf-8")
     print(json.dumps({
-        "slug": slug, "dir": str(target), "title": meta["title"], "channel": meta["channel"],
+        "slug": slug, "path": str(target), "replaced": bool(existing), "title": meta["title"], "channel": meta["channel"],
         "duration_hms": hms(meta["duration"]), "language": lang or meta["language"],
         "source": source, "model": model, "glossary_hits": glossary_hits, "lines": len(lines), "chars": sum(len(l) for l in lines),
         "created_home": created_home,
     }, ensure_ascii=False, indent=2))
-
-
-def cmd_list():
-    vids = saved_videos()
-    if not vids:
-        print(f"저장된 영상이 없다. ({home()})")
-        return
-    vids.sort(key=lambda v: (v.get("saved", ""), v["slug"]), reverse=True)
-    print("| slug | 제목 | 길이 | status | 저장일 | 자막 |")
-    print("|---|---|---|---|---|---|")
-    for v in vids:
-        d = str(v.get("duration", ""))
-        length = hms(int(d)) if d.isdigit() else "?"
-        title = str(v.get("title", "")).replace("|", "\\|")
-        src = v.get("source", "?")
-        if src == "whisper" and v.get("model") not in (None, "~"):
-            src = f"whisper:{v['model']}"
-        print(f"| {v['slug']} | {title} | {length} | {v['status']} | {v.get('saved', '?')} | {src} |")
 
 
 def main(argv):
@@ -415,8 +339,6 @@ def main(argv):
         cmd_info(argv[1])
     elif len(argv) >= 3 and argv[0] == "save":
         cmd_save(argv[1], argv[2], "--whisper" in argv[3:], "--captions" in argv[3:])
-    elif argv[:1] == ["list"]:
-        cmd_list()
     else:
         print(__doc__)
         sys.exit(64)
