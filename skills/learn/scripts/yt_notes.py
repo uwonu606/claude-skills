@@ -28,6 +28,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 PROMPT_MAX_CHARS = 400  # whisper 는 프롬프트의 마지막 223 토큰만 쓴다
 USER_LANGS = ["ko", "en"]  # 원어를 못 알아냈을 때의 우선순위
+TURBO_GPU_REALTIME_FACTOR = 0.02
+SMALL_CPU_REALTIME_FACTOR = 0.2
 
 
 def home() -> Path:
@@ -167,8 +169,9 @@ def plan_for(gpu: bool, has_captions: bool, force_whisper: bool, prefer_captions
 
 
 def estimate_seconds(plan: str, duration: int) -> int:
-    # 실측 rtf: turbo GPU 0.016~0.022(+로드·다운로드), small CPU 0.11~0.20
-    return {"captions": 2, "whisper-turbo": int(duration * 0.02) + 20, "whisper-small": int(duration * 0.2) + 10}[plan]
+    return {"captions": 2,
+            "whisper-turbo": int(duration * TURBO_GPU_REALTIME_FACTOR) + 20,
+            "whisper-small": int(duration * SMALL_CPU_REALTIME_FACTOR) + 10}[plan]
 
 
 # ---------- 저장소 ----------
