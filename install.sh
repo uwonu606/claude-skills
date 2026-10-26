@@ -116,16 +116,6 @@ if $UNINSTALL; then
         echo "  ! $name — $dest 는 이 저장소가 건 symlink 가 아님, 건너뜀 (--force 로 제거)" >&2
       fi
     fi
-    for agent in "$SRC_DIR/$name"/agents/*.md; do
-      [ -f "$agent" ] || continue
-      adest="$TARGET_ROOT/agents/$(basename "$agent")"
-      { [ -e "$adest" ] || [ -L "$adest" ]; } || continue
-      if claim "$adest"; then
-        echo "  - $adest"
-      else
-        echo "  ! $(basename "$agent") — $adest 는 이 저장소가 건 symlink 가 아님, 건너뜀 (--force 로 제거)" >&2
-      fi
-    done
   done
   if $ALL; then
     for dest in "$TARGET_ROOT/output-styles"/*.md; do
@@ -178,29 +168,6 @@ for dest in "$SKILLS_ROOT"/*; do
   stale=$((stale + 1))
   rm -f "$dest"
   echo "  - $dest"
-done
-
-# 스킬 아래 agents/*.md 는 전문 에이전트 정의다 — ~/.claude/agents/<name>.md 로 건다
-AGENTS_ROOT="$TARGET_ROOT/agents"
-agents=0
-for name in "${NAMES[@]}"; do
-  for agent in "$SRC_DIR/$name"/agents/*.md; do
-    [ -f "$agent" ] || continue
-    mkdir -p "$AGENTS_ROOT"
-    dest="$AGENTS_ROOT/$(basename "$agent")"
-    if ! claim "$dest"; then
-      echo "  ! $(basename "$agent") — $dest 에 이 저장소 것이 아닌 항목이 있음, 건너뜀 (--force 로 대체)" >&2
-      continue
-    fi
-    if [ "$MODE" = symlink ]; then
-      ln -s "$agent" "$dest"
-    else
-      cp "$agent" "$dest"
-    fi
-    [ "$agents" -eq 0 ] && echo "에이전트 설치 ($MODE):"
-    agents=$((agents + 1))
-    echo "  - $dest"
-  done
 done
 
 # output-styles/*.md 는 출력 스타일이다 — 전체 설치에만 ~/.claude/output-styles/<파일> 로 건다
