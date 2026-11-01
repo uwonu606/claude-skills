@@ -168,6 +168,21 @@ def plan_for(gpu: bool, has_captions: bool, force_whisper: bool, prefer_captions
     return "whisper-turbo" if gpu else "whisper-small"
 
 
+TRANSCRIPT_IGNORE_RULE = "*/sources/yt-*.md"
+
+
+def ensure_transcripts_ignored(root: Path) -> None:
+    gitignore = root / ".gitignore"
+    existing = gitignore.read_text(encoding="utf-8") if gitignore.exists() else ""
+    if TRANSCRIPT_IGNORE_RULE in existing.splitlines():
+        return
+    separator = "" if not existing or existing.endswith("\n") else "\n"
+    gitignore.write_text(
+        existing + separator
+        + "# 자막·전사 원문은 남의 저작물이라 올리지 않는다. URL 이 살아 있으면 다시 받는다.\n"
+        + TRANSCRIPT_IGNORE_RULE + "\n", encoding="utf-8")
+
+
 def estimate_seconds(plan: str, duration: int) -> int:
     return {"captions": 2,
             "whisper-turbo": int(duration * TURBO_GPU_REALTIME_FACTOR) + 20,
@@ -236,10 +251,7 @@ def cmd_save(url: str, slug: str, force_whisper: bool, prefer_captions: bool):
     root = home()
     created_home = not root.exists()
     root.mkdir(parents=True, exist_ok=True)
-    if created_home:
-        (root / ".gitignore").write_text(
-            "# 자막·전사 원문은 남의 저작물이라 올리지 않는다. URL 이 살아 있으면 다시 받는다.\n"
-            "*/sources/yt-*.md\n", encoding="utf-8")
+    ensure_transcripts_ignored(root)
 
     if existing:  # --whisper 로 원문만 갈아 끼운다
         slug = existing["slug"]
