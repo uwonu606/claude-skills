@@ -6,7 +6,7 @@ git-rebase-history/
   sessions/
     2026-10-26-1.md
     2026-10-27-1.md
-  sources/          # 스크립트가 받은 원문만. 영상 전사 yt-<id>.md
+  sources/          # 받은 원문. 영상 전사 yt-<id>.md, 논문 본문, PDF. slug 를 정하기 전에 받은 것은 $LEARN_HOME/.inbox/ 에 두었다가 옮긴다
   lab/              # 실험 코드와 출력
 ```
 
@@ -53,6 +53,7 @@ sessions: [2026-10-26-1, 2026-10-27-1]
   | 커밋 다시 쓰기 | 커밋 하나의 변경을 새 자리에 적용해 새 커밋을 만든다 | 새 해시 |
   | reflog | 브랜치가 가리켰던 옛 자리의 기록 | 되돌릴 때 씀 |
 - 이 예시에서는 안 지난다: --onto, autosquash, rerere
+- 주장: (논문 갈래만) 주장 — 기대는 부품 — 받치는 표·그림, 한 줄씩
 - 한 판 따라가기: feature 의 커밋 셋 → todo 목록에 셋 → 하나씩 main 위에 다시 씀 → feature 가 새 커밋 셋을 가리킴 — `lab/01-rebase.sh` → out-01.txt
 
 ## 확대한 곳                    # 확대할 때마다 한 줄
