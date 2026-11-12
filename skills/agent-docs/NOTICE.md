@@ -1,6 +1,6 @@
 # 출처
 
-`SKILL.md` 와 `references/skill.md` 는 [mattpocock/skills](https://github.com/mattpocock/skills) 의 writing-for-agents(`skills/productivity/writing-for-agents/SKILL.md`, `SKILL-MECHANICS.md`)를 한국어로 옮겨 고친 것이다. 참고 묶음이던 원문을 완료 기준이 붙은 단계로 다시 짰고, 강조·금지문·예시·이유 문장·줄끼리의 충돌·적기 어려운 것에 관한 규칙은 이 저장소에서 더하거나 바꿨다.
+`SKILL.md` 와 `references/skill.md` 는 [mattpocock/skills](https://github.com/mattpocock/skills) 의 writing-for-agents(`skills/productivity/writing-for-agents/SKILL.md`, `SKILL-MECHANICS.md`)를 한국어로 옮겨 고친 것이다. 참고 묶음이던 원문을 완료 기준이 붙은 단계로 다시 짰고, 강조·금지문·예시·이유 문장·줄끼리의 충돌·적기 어려운 것·단계의 의도와 수단·시험에 관한 규칙은 이 저장소에서 더하거나 바꿨다. `references/test.md` 는 이 저장소에서 썼다.
 
 ```
 MIT License
