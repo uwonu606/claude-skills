@@ -1,6 +1,6 @@
 ---
 name: dig
-description: 일·역할·절차 하나를 두고, 공식 설명과 통념으로 지도를 그린 뒤 그 지도를 깨거나 넓히는 현장의 말을 여러 언어로 찾아, 지도 줄마다 원문 인용 조각으로 모은다.
+description: 일·역할·절차 하나를 두고, 공식 설명과 통념으로 지도를 그린 뒤 그 지도를 깨거나 넓히는 현장의 말을 여러 언어로 찾아, 사용자의 물음마다 영토가 한 답을 양쪽에 선 사람과 함께 전한다.
 disable-model-invocation: true
 ---
 
@@ -8,11 +8,11 @@ disable-model-invocation: true
 
 **지도**는 그 일에 대해 우리가 이미 믿는 것이다 — 공고·정의·회사 소개가 말하는 것, 흔한 통념, 사용자의 추측. **영토**는 그 일을 실제로 겪은 사람이 남긴 말이다. 캐는 것은 영토 가운데 지도를 **깨거나 넓히는** 조각이다. 지도대로인 말은 확인일 뿐이고, 지도에 닿지 않는 말은 버린다. 조각의 크기는 상관없다 — 긴 회고 속 한 장면도, 댓글 한 줄도, 낯선 키워드 하나도 지도를 넓히면 원석이다.
 
-**물음**은 사용자가 요청에서 알고 싶다거나 정하려 한다고 적은 것이다.
+**물음**은 사용자가 요청에서 알고 싶다거나 정하려 한다고 적은 것이다. 지도는 영토를 겨냥하는 데 쓰고, 사용자에게는 물음마다 영토가 한 답을 전한다.
 
-지도를 그리는 법과 `map.md` 모양은 [`references/map.md`](references/map.md), 영토를 찾는 법은 [`references/territory.md`](references/territory.md), 에이전트에 넘기는 것과 돌려받는 것은 [`references/dispatch.md`](references/dispatch.md), 깊이 볼 사람의 카드는 [`references/card.md`](references/card.md), URL을 여는 사다리는 [`references/access.md`](references/access.md)가 정한다. 어느 단계에서든 URL은 그 사다리로 연다.
+지도를 그리는 법과 `map.md` 모양은 [`references/map.md`](references/map.md), 영토를 찾는 법은 [`references/territory.md`](references/territory.md), 에이전트에 넘기는 것과 돌려받는 것은 [`references/dispatch.md`](references/dispatch.md), 깊이 볼 사람의 카드는 [`references/card.md`](references/card.md), 물음마다 답을 적는 `answers.md` 모양은 [`references/answers.md`](references/answers.md), URL을 여는 사다리는 [`references/access.md`](references/access.md)가 정한다. 어느 단계에서든 URL은 그 사다리로 연다.
 
-`<스킬>`은 이 `SKILL.md`가 있는 디렉토리의 절대 경로다. `<home>`은 `${DIG_HOME:-$HOME/dig-notes}`를 펼친 절대 경로이고, 명령에는 이 값을 채워 쓴다. 주제 하나가 `<home>/<slug>/`이고, 그 안에 `map.md`(지도와 조각 — 결과물), `sources.md`(출처 목록), `fragments/<묶음>.md`(에이전트가 돌려준 조각), `people/<id>.md`(깊이 본 사람의 카드), `raw/`(인용할 원문, 받은 그대로), `work/`(임시물)가 있다. 로그인 파일은 `<home>/auth/`다.
+`<스킬>`은 이 `SKILL.md`가 있는 디렉토리의 절대 경로다. `<home>`은 `${DIG_HOME:-$HOME/dig-notes}`를 펼친 절대 경로이고, 명령에는 이 값을 채워 쓴다. 주제 하나가 `<home>/<slug>/`이고, 그 안에 `answers.md`(물음마다 영토의 답 — 사용자가 읽는 결과물), `map.md`(지도와 조각 — 답의 근거를 찾아보는 장부), `sources.md`(출처 목록), `fragments/<묶음>.md`(에이전트가 돌려준 조각), `people/<id>.md`(깊이 본 사람의 카드), `raw/`(인용할 원문, 받은 그대로), `work/`(임시물)가 있다. 로그인 파일은 `<home>/auth/`다.
 
 ## 0. 준비
 
@@ -59,10 +59,12 @@ python3 -I <스킬>/scripts/verify_quotes.py <home>/<slug>/fragments/<묶음>.md
 
 ## 4. 전하기
 
-`map.md` #3대로 조각을 지도 줄 아래에 모으고, 같은 뜻을 줄이고, 줄마다 가장 날카로운 조각을 첫 표에 올린다. 사용자는 다 읽지 않는다 — 첫 표만 훑어도 어느 줄이 무엇에 깨졌는지 보여야 한다.
+`map.md` #3대로 조각을 지도 줄 아래에 모으고, 같은 뜻을 줄이고, 첫 표의 판정과 가장 날카로운 조각 칸을 채운다.
 
 `map.md`의 "깊이 볼 사람"에서 `(전한 사람)`이 아닌 사람을 위에서 여섯까지 카드로 올린다. 올린 사람마다 `dispatch.md` #4대로 카드를 만들고, 3단계와 같이 대조한다. 남은 후보는 목록에 그대로 둔다.
 
-사용자에게 `map.md`의 첫 표, 만든 카드의 사람과 경로, `fragments/`와 카드의 "읽은 것"에서 모은 못 연 것(링크와 막힌 이유)을 보이고 끝낸다. 사용자가 그 뒤에 본문을 붙여 넣거나 로그인하면 `access.md` #1의 되찾기로 받고, 카드를 더 보자고 하면 남은 후보에서 만든다.
+`answers.md`를 [`references/answers.md`](references/answers.md)대로 쓴다.
 
-**완료 조건:** 조각마다 `map.md`의 한 줄 아래에 있다. 첫 표의 줄마다 판정과 가장 날카로운 조각(또는 `조각 없음`)이 있다. 줄 아래 절에 같은 뜻의 조각이 둘 이상 남아 있지 않다. 조각이 전체의 셋에 하나를 넘은 사람은 줄마다 하나만 지도에 남았다. 카드로 올린 사람마다 `people/<id>.md`가 있고 대조가 `miss 0`이다. `map.md`의 첫 표, 카드, 못 연 것을 사용자에게 보였다.
+사용자에게 `answers.md`의 첫 표, 만든 카드의 사람과 경로, `fragments/`와 카드의 "읽은 것"에서 모은 못 연 것(링크와 막힌 이유)을 보이고 끝낸다. 사용자가 그 뒤에 본문을 붙여 넣거나 로그인하면 `access.md` #1의 되찾기로 받고, 카드를 더 보자고 하면 남은 후보에서 만든다. 그렇게 받은 조각이 지도에 들어가면 `answers.md`에서 그 줄을 다시 쓴다.
+
+**완료 조건:** 조각마다 `map.md`의 한 줄 아래에 있다. 첫 표의 줄마다 판정과 가장 날카로운 조각(또는 `조각 없음`)이 있다. 줄 아래 절에 같은 뜻의 조각이 둘 이상 남아 있지 않다. 조각이 전체의 셋에 하나를 넘은 사람은 줄마다 하나만 지도에 남았다. 카드로 올린 사람마다 `people/<id>.md`가 있고 대조가 `miss 0`이다. `answers.md`가 `references/answers.md`의 완료 조건을 채운다. `answers.md`의 첫 표, 카드, 못 연 것을 사용자에게 보였다.
