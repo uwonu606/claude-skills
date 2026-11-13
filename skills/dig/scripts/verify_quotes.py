@@ -6,7 +6,7 @@
 
 인용은 큰따옴표로 감싸고 바로 뒤에 `(옮김`, `[출처]`, ` / "` 가 오는 구절이다.
 원문은 <raw-dir> 아래 모든 파일(HTML·텍스트·JSON·VTT 자막)이다. 태그, 자막의 시간 표시,
-줄바꿈, 따옴표 모양, 대소문자는 무시한다. 인용 안의 `...`·`…` 는 생략으로 보고 앞뒤 조각을 따로 찾는다.
+빈칸과 줄바꿈, 따옴표 모양, 대소문자는 무시한다. 인용 안의 `...`·`…` 는 생략으로 보고 앞뒤 조각을 따로 찾는다.
 JSON 원문의 `\\"`·`\\n`·`\\uXXXX` 는 풀어서 읽는다.
 인용 안의 큰따옴표는 인용의 글자로 본다. `"A" ... "B"` 처럼 이어 붙인 인용은 한 인용으로 본다.
 인용 앞 설명에 큰따옴표 쌍이 있으면 그 쌍을 건너뛴 자리에서 다시 찾는다.
@@ -41,7 +41,7 @@ def normalize(text: str) -> str:
     text = html.unescape(text)
     for curly, plain in (("‘", "'"), ("’", "'"), ("“", '"'), ("”", '"'), (" ", " ")):
         text = text.replace(curly, plain)
-    return re.sub(r"\s+", " ", text).strip().lower()
+    return re.sub(r"\s+", "", text).lower()
 
 
 def strip_markup(text: str) -> str:
