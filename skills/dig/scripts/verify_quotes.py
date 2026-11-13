@@ -7,6 +7,7 @@
 인용은 큰따옴표로 감싸고 바로 뒤에 `(옮김`, `[출처]`, ` / "` 가 오는 구절이다.
 원문은 <raw-dir> 아래 모든 파일(HTML·텍스트·JSON·VTT 자막)이다. 태그, 자막의 시간 표시,
 줄바꿈, 따옴표 모양, 대소문자는 무시한다. 인용 안의 `...`·`…` 는 생략으로 보고 앞뒤 조각을 따로 찾는다.
+JSON 원문의 `\\"`·`\\n`·`\\uXXXX` 는 풀어서 읽는다.
 인용 안의 큰따옴표는 인용의 글자로 본다. `"A" ... "B"` 처럼 이어 붙인 인용은 한 인용으로 본다.
 인용 앞 설명에 큰따옴표 쌍이 있으면 그 쌍을 건너뛴 자리에서 다시 찾는다.
 `[출처]` 가 있는데 잡힌 인용이 없는 줄은 `unchecked:` 로 알린다.
@@ -21,7 +22,19 @@ from pathlib import Path
 CLOSING_QUOTE = re.compile(r'"(?=\s*(?:\(옮김|\[출처\]|/\s*"))')
 OMISSION = re.compile(r"\s*(?:\.\.\.|…)\s*")
 JOINED_QUOTES = re.compile(r'"\s*(?:\.\.\.|…)\s*"')
+JSON_ESCAPE = re.compile(r'\\(u[0-9a-fA-F]{4}|["/ntr])')
+JSON_WHITESPACE = {"n": "\n", "t": "\t", "r": "\r"}
 MIN_PART = 8
+
+
+def unescape_json(text: str) -> str:
+    def decoded(escape: re.Match) -> str:
+        token = escape.group(1)
+        if token.startswith("u"):
+            return chr(int(token[1:], 16))
+        return JSON_WHITESPACE.get(token, token)
+
+    return JSON_ESCAPE.sub(decoded, text)
 
 
 def normalize(text: str) -> str:
@@ -49,13 +62,13 @@ def load_corpus(raw_dir: Path) -> str:
     texts = []
     for path in sorted(raw_dir.rglob("*")):
         if path.is_file():
-            text = strip_subtitle_timing(strip_markup(path.read_text(errors="ignore")))
+            text = strip_subtitle_timing(strip_markup(unescape_json(path.read_text(errors="ignore"))))
             texts.append(normalize(text))
     return "\n".join(texts)
 
 
 def quote_parts(quote: str) -> list[str]:
-    return [normalize(p) for p in OMISSION.split(quote) if len(p.strip()) >= MIN_PART]
+    return [normalize(unescape_json(p)) for p in OMISSION.split(quote) if len(p.strip()) >= MIN_PART]
 
 
 def spans_per_closing_quote(line: str) -> list[list[str]]:
