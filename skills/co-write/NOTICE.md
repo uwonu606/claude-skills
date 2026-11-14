@@ -1,6 +1,6 @@
 # 출처
 
-`references/interview.md`의 첫 청과, 재료 밖 사실을 넣지 않는 규칙·출처 노트는 [addyosmani/clarity](https://github.com/addyosmani/clarity)의 co-write 모드(`references/interview.md`, `SKILL.md` #Shared safeguards)를 한국어로 옮겨 고친 것이다.
+`references/interview.md`의 brain dump 요청과, 재료 밖 사실을 넣지 않는 규칙·출처 노트는 [addyosmani/clarity](https://github.com/addyosmani/clarity)의 co-write 모드(`references/interview.md`, `SKILL.md` #Shared safeguards)를 한국어로 옮겨 고친 것이다.
 
 ```
 MIT License
