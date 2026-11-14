@@ -4,12 +4,12 @@ description: 커밋을 의미 단위로 나누고 scope 중심 메시지를 붙�
 disable-model-invocation: false
 ---
 
-더러운 워킹트리를 받아 여러 개의 커밋으로 만든다. 분할을 먼저 확정하고, 확정된 뒤에야 메시지를 쓴다.
+dirty 한 워킹트리를 받아 여러 개의 커밋으로 만든다. 분할을 먼저 확정하고, 확정된 뒤에야 메시지를 쓴다.
 
 - **이미 만들어진 커밋을 고치는 요청이면** [`references/rewriting.md`](references/rewriting.md) 를 먼저 읽는다.
 - **로그 전체가 규약을 지키는지 훑는 요청이면** [`references/log-audit.md`](references/log-audit.md) 를 읽는다.
 
-**[`references/messages.md`](references/messages.md) 는 4단계에 가서 읽는다.** 분할을 판정하는 동안 메시지 규칙이 컨텍스트에 있으면 분할이 흔들린다 — 같은 변경에 의미 규칙만 주면 커밋 수가 4·4·4 로 일치했고, 메시지 규칙을 함께 주면 6·8·4 로 흩어졌다. 3단계를 끝내기 전에 열지 마라.
+**[`references/messages.md`](references/messages.md) 는 4단계에 가서 읽는다.** 분할을 판정하는 동안 메시지 규칙이 context 에 있으면 분할이 흔들린다 — 같은 변경에 의미 규칙만 주면 커밋 수가 4·4·4 로 일치했고, 메시지 규칙을 함께 주면 6·8·4 로 흩어졌다. 3단계를 끝내기 전에 열지 마라.
 
 ## 1. 무엇이 바뀌었는지 본다
 
@@ -55,4 +55,4 @@ git add -A && git write-tree && git reset -q
 
 커밋마다 해당 변경만 `git add` 로 스테이징한 뒤 커밋한다. 본문이 길면 `git commit -F -` 에 heredoc 으로 넘기는 것이 따옴표 처리가 없어 안전하다.
 
-**완료 기준**: `git status` 가 비었고, `git rev-parse HEAD^{tree}` 가 1단계에 찍어 둔 값과 같고, 만든 커밋 수가 3단계에서 정한 수와 같다. 트리가 다르면 나누다가 변경을 잃은 것이다 — 훅 단위로 나누려고 만든 중간 상태가 최종 상태로 안 돌아온 자리를 찾는다.
+**완료 기준**: `git status` 가 비었고, `git rev-parse HEAD^{tree}` 가 1단계에 찍어 둔 값과 같고, 만든 커밋 수가 3단계에서 정한 수와 같다. 트리가 다르면 나누다가 변경을 잃은 것이다 — hunk 단위로 나누려고 만든 중간 상태가 최종 상태로 안 돌아온 자리를 찾는다.
