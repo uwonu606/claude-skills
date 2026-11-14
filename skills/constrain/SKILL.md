@@ -10,12 +10,12 @@ disable-model-invocation: true
 
 본질 가운데 하나를 **defining constraint**로 고른다. 대상을 쓰는 사람이 늘 보고 만지는, 정체성을 정하는 제약이다 — Minecraft는 전부 블록, IKEA는 평판 조립, Unix는 모든 것이 파일. 좋은 defining constraint에서는 다음 결정이 떨어져 나오고, 뒤에 오는 요구를 거르는 기준이 된다. **쓰는 사람**은 대상을 쓰는 쪽이고, **사용자**는 이 스킬을 부른 사람이다.
 
-갈래는 둘이다.
+branch는 둘이다.
 
 - **방향** — 이 구조를 어디로 키울지, 다음에 무엇을 할지 정하기 전. #1~#6.
-- **관문** — one-pager가 있는 대상에 새 요구가 왔을 때. #7.
+- **gate** — one-pager가 있는 대상에 새 요구가 왔을 때. #7.
 
-결과물은 둘이다. one-pager는 대상 저장소의 `docs/constraints/<slug>.md`에 둔다 — 관문이 읽는 파일이다. notes(후보·판정·인용 근거)와 받아 둔 원문은 저장소 밖 `<home>/<slug>/`의 `notes.md`와 `work/`에 둔다. `<home>`은 `$CONSTRAIN_HOME`, 없으면 `~/constrain-notes/`다. notes는 저장소에 넣지 않으므로 one-pager는 notes 없이 읽히게 쓴다.
+결과물은 둘이다. one-pager는 대상 저장소의 `docs/constraints/<slug>.md`에 둔다 — gate가 읽는 파일이다. notes(후보·판정·인용 근거)와 받아 둔 원문은 저장소 밖 `<home>/<slug>/`의 `notes.md`와 `work/`에 둔다. `<home>`은 `$CONSTRAIN_HOME`, 없으면 `~/constrain-notes/`다. notes는 저장소에 넣지 않으므로 one-pager는 notes 없이 읽히게 쓴다.
 
 ## 방향
 
@@ -77,31 +77,31 @@ disable-model-invocation: true
 
 ### 6. one-pager 쓰기
 
-**의도:** 관문이 notes 없이 `docs/constraints/<slug>.md` 하나만 읽고 새 요구를 거를 수 있다. 대상 저장소에서 일하는 에이전트는 새 요구를 받기 전에 그 파일에 대 보게 된다.
+**의도:** gate가 notes 없이 `docs/constraints/<slug>.md` 하나만 읽고 새 요구를 거를 수 있다. 대상 저장소에서 일하는 에이전트는 새 요구를 받기 전에 그 파일에 대 보게 된다.
 
-아래 #one-pager 모양대로 쓴다. 관문은 이 파일로 거르므로 notes에 적은 것을 칸마다 빠짐없이 싣는다. tripwire에는 깨지는 중인 본질과 선례가 무엇에 부딪혔는지를, 다시 열 신호로 적는다.
+아래 #one-pager 모양대로 쓴다. gate는 이 파일로 거르므로 notes에 적은 것을 칸마다 빠짐없이 싣는다. tripwire에는 깨지는 중인 본질과 선례가 무엇에 부딪혔는지를, 다시 열 신호로 적는다.
 
-그다음 대상 저장소의 `AGENTS.md`에 관문 pointer 한 줄을, 사용자 확인을 받아 더한다. `AGENTS.md`가 없고 `CLAUDE.md`만 있으면 거기에, 둘 다 없으면 `AGENTS.md`를 만든다. 대상 저장소에서 일하는 에이전트는 이 스킬을 부를 수 없으므로, 할 일을 이 한 줄에 다 적는다.
+그다음 대상 저장소의 `AGENTS.md`에 gate pointer 한 줄을, 사용자 확인을 받아 더한다. `AGENTS.md`가 없고 `CLAUDE.md`만 있으면 거기에, 둘 다 없으면 `AGENTS.md`를 만든다. 대상 저장소에서 일하는 에이전트는 이 스킬을 부를 수 없으므로, 할 일을 이 한 줄에 다 적는다.
 
 ```markdown
-- <대상>에 새 요구가 오면 받기 전에 `docs/constraints/<slug>.md`의 defining constraint·방향·변경 규칙·tripwire에 대 보고, 사용자가 정한 판정을 그 파일의 관문 기록에 한 줄 남긴다.
+- <대상>에 새 요구가 오면 받기 전에 `docs/constraints/<slug>.md`의 defining constraint·방향·변경 규칙·tripwire에 대 보고, 사용자가 정한 판정을 그 파일의 gate 기록에 한 줄 남긴다.
 ```
 
 **넘기는 것:** `docs/constraints/<slug>.md`, 대상 저장소의 `AGENTS.md`나 `CLAUDE.md`에 더한 pointer 한 줄.
 
 **완료:** 칸마다 내용이나 `~`가 있고, pointer 줄이 들어갔다.
 
-## 관문
+## gate
 
 ### 7. 새 요구 거르기
 
 **의도:** 새 요구를 받을지와 어떻게 받을지를, 사용자가 one-pager에 대 본 결과를 보고 정했다. 그 판정은 다음 과정 읽기가 읽을 이력으로 남았다.
 
-one-pager를 열고 새 요구를 defining constraint·방향·변경 규칙·tripwire에 대 본다. 부딪힌 곳과, 새 요구를 받을지·어떻게 받을지에 대한 판정을 근거와 함께 사용자에게 내고, 사용자가 정한다. 제약을 다시 정하기로 하면 #2~#6을 다시 돈다. 관문 기록은 이 구조의 과정이 쌓이는 자리라서, 다음 #2에서 이력으로 다시 읽힌다.
+one-pager를 열고 새 요구를 defining constraint·방향·변경 규칙·tripwire에 대 본다. 부딪힌 곳과, 새 요구를 받을지·어떻게 받을지에 대한 판정을 근거와 함께 사용자에게 내고, 사용자가 정한다. 제약을 다시 정하기로 하면 #2~#6을 다시 돈다. gate 기록은 이 구조의 과정이 쌓이는 자리라서, 다음 #2에서 이력으로 다시 읽힌다.
 
-**넘기는 것:** 사용자에게 낸 부딪힌 곳과 판정, one-pager의 관문 기록에 더한 한 줄.
+**넘기는 것:** 사용자에게 낸 부딪힌 곳과 판정, one-pager의 gate 기록에 더한 한 줄.
 
-**완료:** 사용자가 정한 판정과 근거가 one-pager의 관문 기록에 한 줄로 남았다.
+**완료:** 사용자가 정한 판정과 근거가 one-pager의 gate 기록에 한 줄로 남았다.
 
 ## one-pager
 
@@ -127,7 +127,7 @@ one-pager를 열고 새 요구를 defining constraint·방향·변경 규칙·tr
 **tripwire**
 - <무엇을 보면> → <무엇을 다시 연다>
 
-**관문 기록** (<날짜> <요구> → <판정> — <근거>. 제약을 다시 정하는 일은 사용자가 `/constrain`으로 한다)
+**gate 기록** (<날짜> <요구> → <판정> — <근거>. 제약을 다시 정하는 일은 사용자가 `/constrain`으로 한다)
 - ~
 ```
 
