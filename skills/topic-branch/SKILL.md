@@ -26,8 +26,10 @@ disable-model-invocation: false
 
   ```bash
   base=origin/main; git rev-parse -q --verify "$base" >/dev/null || base=main
-  git worktree add -b <이름> .claude/worktrees/<이름> "$base"
+  git worktree add -b <이름> --no-track .claude/worktrees/<이름> "$base"
   ```
+
+  `--no-track` 이 없으면 새 브랜치가 origin/main 을 따라가서, 로컬로 합친 뒤 push 하기 전에는 `git branch -d` 가 거절한다(실측).
 
   경로가 이미 차 있는 것처럼 브랜치를 만든 **뒤** 실패하면 그 브랜치가 고아로 남는다(실측) — 실패했으면 `git branch -d <이름>` 으로 확인해 치운다. 기준점이 안 풀려서 실패한 경우에는 브랜치가 안 생긴다.
 
