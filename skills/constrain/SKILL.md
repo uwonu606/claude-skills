@@ -79,19 +79,19 @@ branch는 둘이다.
 
 ### 6. one-pager 쓰기
 
-**의도:** gate가 notes 없이 `docs/constraints/<slug>.md` 하나만 읽고 새 요구를 거를 수 있다. 대상 저장소에서 일하는 에이전트는 새 요구를 받기 전에 그 파일에 대 보게 된다.
+**의도:** gate가 notes 없이 `docs/constraints/<slug>.md` 하나만 읽고 새 요구를 거를 수 있다. 대상 저장소에 `AGENTS.md`나 `CLAUDE.md`가 있으면, 거기서 일하는 에이전트는 새 요구를 받기 전에 그 파일에 대 보게 된다.
 
 아래 #one-pager 모양대로 쓴다. gate는 이 파일로 거르므로 notes에 적은 것을 칸마다 빠짐없이 싣는다. tripwire에는 깨지는 중인 본질과 선례가 무엇에 부딪혔는지를, 다시 열 신호로 적는다.
 
-그다음 대상 저장소의 `AGENTS.md`에 gate pointer 한 줄을, 사용자 확인을 받아 더한다. `AGENTS.md`가 없고 `CLAUDE.md`만 있으면 거기에, 둘 다 없으면 `AGENTS.md`를 만든다. 대상 저장소에서 일하는 에이전트는 이 스킬을 부를 수 없으므로, 할 일을 이 한 줄에 다 적는다.
+그다음 대상 저장소의 `AGENTS.md`에 gate pointer 한 줄을, 사용자 확인을 받아 더한다. `AGENTS.md`가 없고 `CLAUDE.md`만 있으면 거기에 더한다. 둘 다 없으면 pointer를 넣지 않고, 새 요구는 사용자가 `/constrain`을 불러서 거른다는 것을 사용자에게 알린다 — 두 파일이 없는 저장소는 그렇게 두기로 한 것일 수 있어서다. 대상 저장소에서 일하는 에이전트는 이 스킬을 부를 수 없으므로, 할 일을 이 한 줄에 다 적는다.
 
 ```markdown
 - <대상>에 새 요구가 오면 받기 전에 `docs/constraints/<slug>.md`의 defining constraint·방향·변경 규칙·tripwire에 대 보고, 사용자가 정한 판정을 그 파일의 gate 기록에 한 줄 남긴다.
 ```
 
-**넘기는 것:** `docs/constraints/<slug>.md`, 대상 저장소의 `AGENTS.md`나 `CLAUDE.md`에 더한 pointer 한 줄.
+**넘기는 것:** `docs/constraints/<slug>.md`, 대상 저장소의 `AGENTS.md`나 `CLAUDE.md`에 더한 pointer 한 줄. 두 파일이 없으면 넣지 않았다고 사용자에게 알린 말.
 
-**완료:** 칸마다 내용이나 `~`가 있고, pointer 줄이 들어갔다.
+**완료:** 칸마다 내용이나 `~`가 있다. pointer 줄이 들어갔거나, 두 파일이 없어서 넣지 않았다고 사용자에게 알렸다.
 
 ## gate
 
