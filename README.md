@@ -47,7 +47,7 @@ bash install.sh <이름>
 
 ## CLAUDE.md
 
-`claude-md/CLAUDE.md` 는 모든 프로젝트의 session 에 싣는 지침이다. `install.sh` 는 이 파일을 설치하지 않는다. 쓰려면 `~/.claude/CLAUDE.md` 로 복사한다.
+`claude-md/CLAUDE.md` 는 모든 프로젝트의 session 에 싣는 지침이다. 사용자는 방향을 정하고 답만 읽는다는 첫 문단에서 세 절(정하는 사람, 읽는 사람, 믿는 정도)이 내려온다. Claude Code 의 기능 이름을 쓰지 않아서 다른 도구의 지침 파일로 옮겨도 뜻이 통한다. `install.sh` 는 이 파일을 설치하지 않는다. 쓰려면 `~/.claude/CLAUDE.md` 로 복사한다.
 
 ## 규약
 
