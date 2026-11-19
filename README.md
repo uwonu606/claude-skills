@@ -1,6 +1,6 @@
 # claude-skills
 
-직접 만들어 쓰는 Claude Code 스킬 모음. 스킬 하나당 디렉토리 하나, 그 안에 `SKILL.md`. 출력 스타일은 `output-styles/` 에 파일 하나씩.
+직접 만들어 쓰는 Claude Code 스킬 모음. 스킬 하나당 디렉토리 하나, 그 안에 `SKILL.md`. 출력 스타일은 `output-styles/` 에 파일 하나씩. 모든 프로젝트에 싣는 지침은 `claude-md/CLAUDE.md`.
 
 ## 설치
 
@@ -44,6 +44,10 @@ bash install.sh <이름>
 | 스타일 | 하는 것 |
 |---|---|
 | `scan` | 설명은 결론으로 여는 문단으로, 절차는 단계마다 명령 블록으로, 작업 보고는 결과 문장과 굵은 heading 아래 짧은 불릿으로 쓴다 |
+
+## CLAUDE.md
+
+`claude-md/CLAUDE.md` 는 모든 프로젝트의 session 에 싣는 지침이다. `install.sh` 는 이 파일을 설치하지 않는다. 쓰려면 `~/.claude/CLAUDE.md` 로 복사한다.
 
 ## 규약
 
