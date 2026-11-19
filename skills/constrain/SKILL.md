@@ -139,5 +139,3 @@ one-pager를 열고 새 요구를 defining constraint·방향·변경 규칙·tr
 **gate 기록** (<날짜> <요구> → <판정> — <근거>. 제약을 다시 정하는 일은 사용자가 `/constrain`으로 한다)
 - ~
 ```
-
-이 절차의 근거 조사는 `~/dig-notes/borrow-prior-art/`(`map.md`, `people/`)에 있다.
