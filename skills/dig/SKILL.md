@@ -10,6 +10,8 @@ disable-model-invocation: true
 
 **물음**은 사용자가 요청에서 알고 싶다거나 정하려 한다고 적은 것이다. 지도는 영토를 겨냥하는 데 쓰고, 사용자에게는 물음마다 영토가 한 답을 전한다.
 
+입력은 사용자의 요청이다 — 주제 한 줄과, 함께 적은 물음·짐작·지난 조사·글 URL·사람. 물음과 짐작과 지난 조사는 1단계에, 글 URL과 사람은 2단계에 그대로 넣는다.
+
 지도를 그리는 법과 `map.md` 모양은 [`references/map.md`](references/map.md), 영토를 찾는 법은 [`references/territory.md`](references/territory.md), 에이전트에 넘기는 것과 돌려받는 것은 [`references/dispatch.md`](references/dispatch.md), 깊이 볼 사람의 카드는 [`references/card.md`](references/card.md), 물음마다 답을 적는 `answers.md` 모양은 [`references/answers.md`](references/answers.md), URL을 여는 사다리는 [`references/access.md`](references/access.md)가 정한다. 어느 단계에서든 URL은 그 사다리로 연다.
 
 `<스킬>`은 이 `SKILL.md`가 있는 디렉토리의 절대 경로다. `<home>`은 `${DIG_HOME:-$HOME/dig-notes}`를 펼친 절대 경로이고, 명령에는 이 값을 채워 쓴다. 주제 하나가 `<home>/<slug>/`이고, 그 안에 `answers.md`(물음마다 영토의 답 — 사용자가 읽는 결과물), `map.md`(지도와 조각 — 답의 근거를 찾아보는 장부), `sources.md`(출처 목록), `fragments/<묶음>.md`(에이전트가 돌려준 조각), `people/<id>.md`(깊이 본 사람의 카드), `raw/`(인용할 원문, 받은 그대로), `work/`(임시물)가 있다. 로그인 파일은 `<home>/auth/`다.
@@ -17,8 +19,6 @@ disable-model-invocation: true
 ## 0. 준비
 
 **의도:** 이 조사의 결과가 놓일 자리가 있고, 로그인해 둔 호스트가 에이전트에 넘길 목록으로 적혀 있다.
-
-입력은 사용자의 요청이다 — 주제 한 줄과, 함께 적은 물음·짐작·지난 조사·글 URL·사람. 물음과 짐작과 지난 조사는 1단계에, 글 URL과 사람은 2단계에 그대로 넣는다.
 
 `<home>`에 같은 주제를 다룬 slug가 있으면 이어 쓸지 사용자에게 한 번 묻는다. 새 주제면 slug를 영문 kebab으로 짓는다. 그다음 디렉토리를 만들고, 로그인해 둔 호스트를 `work/hosts.md`에 적는다.
 
