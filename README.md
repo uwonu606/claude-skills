@@ -37,13 +37,13 @@ bash install.sh <이름>
 
 ## 출력 스타일
 
-스킬이 "무엇을 할지"라면 출력 스타일은 "어떻게 말할지"다. 시스템 프롬프트에 붙어 매 턴 적용되고, subagent 에는 안 간다 — 산출물까지 지켜야 하는 규약은 `CLAUDE.md` 에 둔다.
+출력 스타일은 그 도구가 답을 그리는 방식 때문에 생기는 것만 정한다. 어느 도구에서나 뜻이 통하는 지침은 답의 모양까지 `CLAUDE.md` 에 둔다. 출력 스타일은 시스템 프롬프트에 붙어 매 턴 적용되고, subagent 에는 안 간다.
 
 `output-styles/<파일>.md` 하나가 스타일 하나다. frontmatter 의 `name` 이 스타일 이름이고, `keep-coding-instructions: true` 를 빼면 Claude Code 의 코딩 지침이 통째로 빠진다. 켜는 것은 `~/.claude/settings.json` 에 `"outputStyle": "<name>"` 을 적는 것이고, 새 세션이나 `/clear` 뒤에 적용된다.
 
 | 스타일 | 하는 것 |
 |---|---|
-| `scan` | 설명은 결론으로 여는 문단으로, 절차는 단계마다 명령 블록으로, 작업 보고는 결과 문장과 굵은 heading 아래 짧은 불릿으로 쓴다 |
+| `scan` | Claude Code 터미널이 답을 그리는 방식에 맞춘다: 눌러 여는 `경로:줄`, 굵은 글자 묶음 제목, 백틱, 이미 보인 diff. 설명·절차·보고의 모양은 `claude-md/CLAUDE.md` 가 정하므로 그 파일과 함께 쓴다 |
 
 ## CLAUDE.md
 
