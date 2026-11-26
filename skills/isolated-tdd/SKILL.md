@@ -61,13 +61,13 @@ agent 넷은 서로의 산출물 가운데 아래 표의 것만 받는다. 구�
 
 ## 5. mutation 검사
 
-**의도**: acceptance test 가 구현의 바깥 동작을 붙잡는다.
+**의도**: acceptance test 가 구현의 바깥 동작을 붙잡고, 테스트를 더하는 동안에도 테스트 agent 는 구현 코드를 받지 않았다.
 
-메인이 구현에 버그를 하나씩 넣어 acceptance test 가 잡는지 본다. Python 이면 `python3 <스킬>/scripts/mutate.py <구현 파일> <work>/acceptance`, 다른 언어면 그 언어의 mutation testing 도구를 쓴다. 살아남은 버그를 `survivors-N.txt` 로 구현 agent 에게 넘기면 구현 agent 가 `gaps-N.md` 를 쓰고, 테스트 agent 가 테스트를 더한다. 테스트 agent 가 기대값을 design.md 로 끌어내지 못해 `gap-question-N.md` 를 쓰면 설계 agent 가 design.md 를 고치고, 설계 agent 가 사용자에게 물을 것을 돌려주면 메인이 1단계처럼 묻는다. 더한 테스트는 설계 agent 가 다시 판정하고, 메인이 4단계처럼 다시 돌린다.
+메인이 구현에 버그를 하나씩 넣어 acceptance test 가 잡는지 본다. Python 이면 `python3 <스킬>/scripts/mutate.py <구현 파일> <work>/acceptance`, 다른 언어면 그 언어의 mutation testing 도구를 쓴다. 살아남은 버그를 `survivors-N.txt` 로 구현 agent 에게 넘기면 구현 agent 가 `gaps-N.md` 를 쓰고, 테스트 agent 가 테스트를 더한다. `survivors-N.txt` 에는 구현 코드가 들어 있으므로 구현 agent 에게만 넘기고, 테스트 agent 에게는 `gaps-N.md` 만 넘긴다. 테스트 agent 가 기대값을 design.md 로 끌어내지 못해 `gap-question-N.md` 를 쓰면 설계 agent 가 design.md 를 고치고, 설계 agent 가 사용자에게 물을 것을 돌려주면 메인이 1단계처럼 묻는다. 더한 테스트는 설계 agent 가 다시 판정하고, 메인이 4단계처럼 다시 돌린 뒤 mutation 검사를 한 번 더 한다.
 
 **넘기는 것**: `survivors-N.txt`, `gaps-N.md`, 더한 acceptance test, 다시 쓴 `review.md`, 다시 돌린 결과.
 
-**완료 기준**: 살아남은 버그마다 `gaps-N.md` 에 동등한 이유가 있거나, 그 동작을 확인하는 테스트가 더해졌거나, 설계 agent 가 정하지 않는다고 적었다. 다시 쓴 `review.md` 첫 줄이 `PASS` 이고, 다시 돌린 acceptance test 가 모두 통과한다. 도구를 찾지 못했으면 이 단계를 건너뛰었다고 보고에 적는다.
+**완료 기준**: 살아남은 버그마다 `gaps-N.md` 에 동등한 이유가 있거나, 그 동작을 확인하는 테스트가 더해졌거나, 설계 agent 가 정하지 않는다고 적었다. `gaps-N.md` 에 구현 코드와 줄 번호가 없다. 다시 쓴 `review.md` 첫 줄이 `PASS` 이고, 다시 돌린 acceptance test 가 모두 통과한다. mutation 검사를 두 번 한 뒤에도 셋 중 어느 것도 아닌 버그는 사용자에게 가져간다. 도구를 찾지 못했으면 이 단계를 건너뛰었다고 보고에 적는다.
 
 ## 6. 코드 품질 검토
 
