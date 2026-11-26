@@ -29,7 +29,7 @@ agent 넷은 서로의 산출물 가운데 아래 표의 것만 받는다. 구�
 
 **넘기는 것**: `<work>/design.md`.
 
-**완료 기준**: 규칙 문장마다 예가 있고, "확인된 seam" 절이 사용자의 답과 맞고, 물은 빈 곳마다 "사용자가 정함" 으로 표시된 해석이 있다. 사용자의 답이 오기 전에는 2단계를 시작하지 않는다.
+**완료 기준**: spec 의 규칙과 단서마다 그것이 들어간 규칙 문장이 있고, spec 에서 끌어낼 수 없는 규칙 문장마다 사용자의 어느 답에서 왔는지가 표시돼 있다. 규칙 문장마다 예가 있고, "확인된 seam" 절이 사용자의 답과 맞는다. 사용자의 답이 오기 전에는 2단계를 시작하지 않는다.
 
 ## 2. acceptance test
 
@@ -39,15 +39,15 @@ agent 넷은 서로의 산출물 가운데 아래 표의 것만 받는다. 구�
 
 **넘기는 것**: `<work>/acceptance/`, `<work>/coverage.md`, `<work>/review.md`.
 
-**완료 기준**: `review.md` 첫 줄이 `PASS` 다. 두 번 고친 뒤에도 `GAPS` 면 남은 빈 곳을 사용자에게 가져간다.
+**완료 기준**: `review.md` 첫 줄이 `PASS` 다. 두 번 고친 뒤에도 `GAPS` 면 남은 지적을 사용자에게 가져간다.
 
 ## 3. 구현
 
 **의도**: 구현이 확인된 seam 에서 실패하는 unit test 를 하나씩 보며 자랐다.
 
-**넘기는 것**: 저장소의 구현과 unit test, 구현 agent 가 돌려준 cycle 기록.
+**넘기는 것**: 저장소의 구현과 unit test, 구현 agent 가 돌려준 cycle 기록을 메인이 저장한 `<work>/cycles.md`.
 
-**완료 기준**: unit test 가 모두 통과하고, cycle 기록의 cycle 마다 구현을 고치기 전에 실패를 본 테스트가 적혀 있다.
+**완료 기준**: unit test 가 모두 통과하고 확인된 seam 으로만 부른다. `cycles.md` 에서 구현을 고친 cycle 마다, 그 고침 전에 실패한 테스트 하나와 그 실패 결과가 적혀 있다. 이 순서를 어긴 cycle 은 구현을 되돌려 실패를 다시 만들지 않고, 어긴 대로 적어 사용자에게 가져간다.
 
 ## 4. acceptance 실행과 feedback
 
@@ -57,17 +57,17 @@ agent 넷은 서로의 산출물 가운데 아래 표의 것만 받는다. 구�
 
 **넘기는 것**: `results-N.txt`, `feedback-N.md`, 있으면 `dispute-N.md` 와 `ruling-N.md`.
 
-**완료 기준**: 마지막 `results-N.txt` 에 실패가 없다. feedback 이 세 번 오간 뒤에도 실패가 남으면 남은 실패를 사용자에게 가져간다.
+**완료 기준**: 마지막 `results-N.txt` 에 실패가 없고, `feedback-N.md` 의 테스트 수정과 `ruling-N.md` 마다 근거가 된 규칙 문장 번호나 spec 의 대목이 있다. feedback 이 세 번 오간 뒤에도 실패가 남으면 남은 실패를 사용자에게 가져간다.
 
 ## 5. mutation 검사
 
 **의도**: acceptance test 가 구현의 바깥 동작을 붙잡는다.
 
-메인이 구현에 버그를 하나씩 넣어 acceptance test 가 잡는지 본다. Python 이면 `python3 <스킬>/scripts/mutate.py <구현 파일> <work>/acceptance`, 다른 언어면 그 언어의 mutation testing 도구를 쓴다. 살아남은 버그를 `survivors-N.txt` 로 구현 agent 에게 넘기면 구현 agent 가 `gaps-N.md` 를 쓰고, 테스트 agent 가 테스트를 더한다. 더한 테스트는 설계 agent 가 다시 판정하고, 메인이 4단계처럼 다시 돌린다.
+메인이 구현에 버그를 하나씩 넣어 acceptance test 가 잡는지 본다. Python 이면 `python3 <스킬>/scripts/mutate.py <구현 파일> <work>/acceptance`, 다른 언어면 그 언어의 mutation testing 도구를 쓴다. 살아남은 버그를 `survivors-N.txt` 로 구현 agent 에게 넘기면 구현 agent 가 `gaps-N.md` 를 쓰고, 테스트 agent 가 테스트를 더한다. 테스트 agent 가 기대값을 design.md 로 끌어내지 못해 `gap-question-N.md` 를 쓰면 설계 agent 가 design.md 를 고치고, 설계 agent 가 사용자에게 물을 것을 돌려주면 메인이 1단계처럼 묻는다. 더한 테스트는 설계 agent 가 다시 판정하고, 메인이 4단계처럼 다시 돌린다.
 
 **넘기는 것**: `survivors-N.txt`, `gaps-N.md`, 더한 acceptance test, 다시 쓴 `review.md`, 다시 돌린 결과.
 
-**완료 기준**: 살아남은 버그마다 `gaps-N.md` 에 동등한 이유가 있거나, 그 동작을 확인하는 테스트가 더해졌거나, 설계 agent 가 정하지 않는다고 적었다. 다시 돌린 acceptance test 가 모두 통과한다. 도구를 찾지 못했으면 이 단계를 건너뛰었다고 보고에 적는다.
+**완료 기준**: 살아남은 버그마다 `gaps-N.md` 에 동등한 이유가 있거나, 그 동작을 확인하는 테스트가 더해졌거나, 설계 agent 가 정하지 않는다고 적었다. 다시 쓴 `review.md` 첫 줄이 `PASS` 이고, 다시 돌린 acceptance test 가 모두 통과한다. 도구를 찾지 못했으면 이 단계를 건너뛰었다고 보고에 적는다.
 
 ## 6. 코드 품질 검토
 
