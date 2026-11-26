@@ -13,7 +13,7 @@ agent 넷은 서로의 산출물 가운데 아래 표의 것만 받는다. 구�
 | agent | 받는 것 | 돌려주는 것 | 열지 않는 것 | 역할 파일 |
 |---|---|---|---|---|
 | 설계 | spec, 사용자의 답, `gap-question-N`, `dispute-N` | `design.md`, `review.md`, `ruling-N.md` | 구현 코드 | [`references/design-agent.md`](references/design-agent.md) |
-| 테스트 | spec, `design.md`, `results-N`, `review.md`, `gaps-N`, `ruling-N` | `<work>/acceptance/`, `coverage.md`, `feedback-N.md`, `gap-question-N.md` | 구현 코드 | [`references/test-agent.md`](references/test-agent.md) |
+| 테스트 | spec, `design.md`, `results-N`, `review.md`, `gaps-N`, `ruling-N` | `<work>/acceptance/`, `coverage.md`, `feedback-N.md`, `dispute-N.md`, `gap-question-N.md` | 구현 코드 | [`references/test-agent.md`](references/test-agent.md) |
 | 구현 | spec, `design.md`, `feedback-N`, `ruling-N`, `survivors-N`, `quality-N` | 저장소의 구현과 unit test, `dispute-N.md`, `gaps-N.md`, `quality-reply-N.md` | `<work>/acceptance/` | [`references/impl-agent.md`](references/impl-agent.md) |
 | 품질 | `design.md`, 구현 코드, 저장소의 코드 기준, 복잡도 측정값, `quality-reply-N` | `quality-N.md` | 테스트 코드 | [`references/quality-agent.md`](references/quality-agent.md) |
 
@@ -23,13 +23,13 @@ agent 넷은 서로의 산출물 가운데 아래 표의 것만 받는다. 구�
 
 ## 1. 설계
 
-**의도**: design.md 가 spec 의 규칙과 단서를 빠짐없이 규칙 문장과 예로 담고, seam 과 spec 의 빈 곳이 사용자에게 확인됐다.
+**의도**: design.md 가 spec 의 규칙과 단서를 빠짐없이 규칙 문장과 예로 담고, spec 이 정하지 않은 interface 와 seam 과 spec 의 빈 곳이 사용자에게 확인됐다.
 
-설계 agent 가 design.md 초안과 사용자에게 물을 것(seam 후보, 빈 곳마다 해석과 권하는 쪽)을 돌려준다. 메인은 물을 것을 한 메시지로 사용자에게 묻고, 답을 설계 agent 에게 넘겨 design.md 를 확정한다.
+설계 agent 가 design.md 초안과 사용자에게 물을 것(spec 이 정하지 않은 interface, seam 후보, 빈 곳마다 해석과 권하는 쪽)을 돌려준다. 메인은 물을 것을 한 메시지로 사용자에게 묻고, 답을 설계 agent 에게 넘겨 design.md 를 확정한다.
 
 **넘기는 것**: `<work>/design.md`.
 
-**완료 기준**: spec 의 규칙과 단서마다 그것이 들어간 규칙 문장이 있고, spec 에서 끌어낼 수 없는 규칙 문장마다 사용자의 어느 답에서 왔는지가 표시돼 있다. 규칙 문장마다 예가 있고, "확인된 seam" 절이 사용자의 답과 맞는다. 사용자의 답이 오기 전에는 2단계를 시작하지 않는다.
+**완료 기준**: spec 의 규칙과 단서마다 그것이 들어간 규칙 문장이 있고, spec 에서 끌어낼 수 없는 규칙 문장과 interface 마다 사용자의 어느 답에서 왔는지가 표시돼 있다. 규칙 문장마다 예가 있고, "확인된 seam" 절이 사용자의 답과 맞는다. 사용자의 답이 오기 전에는 2단계를 시작하지 않는다.
 
 ## 2. acceptance test
 
@@ -53,11 +53,11 @@ agent 넷은 서로의 산출물 가운데 아래 표의 것만 받는다. 구�
 
 **의도**: 구현이 acceptance test 를 모두 통과하고, 그 사이의 고침은 테스트 쪽이든 구현 쪽이든 design.md 를 근거로 했다.
 
-메인이 acceptance test 를 저장소 코드에 대고 돌려 `results-N.txt` 로 남긴다. 실패가 있으면 테스트 agent 가 `feedback-N.md` 를 쓰고, 구현 agent 가 고치거나 `dispute-N.md` 를 쓴다. 이의는 설계 agent 가 `ruling-N.md` 로 판정하고, 틀렸다고 판정된 쪽이 고친다.
+메인이 acceptance test 를 저장소 코드에 대고 돌려 `results-N.txt` 로 남긴다. 실패가 있으면 테스트 agent 가 `feedback-N.md` 를 쓰고 구현 agent 가 고친다. 테스트 agent 는 design.md 가 틀렸다고 보면, 구현 agent 는 feedback 의 기대값이 틀렸다고 보면, 고치지 않고 `dispute-N.md` 를 쓴다. 이의는 설계 agent 가 `ruling-N.md` 로 판정하고, 틀렸다고 판정된 쪽이 고친다. 구현 agent 가 고친 뒤에는 테스트 agent 가 고쳐진 규칙 문장마다 feedback 과 다른 입력의 테스트를 하나 더하고, 메인이 다시 돌린다.
 
-**넘기는 것**: `results-N.txt`, `feedback-N.md`, 있으면 `dispute-N.md` 와 `ruling-N.md`.
+**넘기는 것**: `results-N.txt`, `feedback-N.md`, 더한 acceptance test, 있으면 `dispute-N.md` 와 `ruling-N.md`.
 
-**완료 기준**: 마지막 `results-N.txt` 에 실패가 없고, `feedback-N.md` 의 테스트 수정과 `ruling-N.md` 마다 근거가 된 규칙 문장 번호나 spec 의 대목이 있다. feedback 이 세 번 오간 뒤에도 실패가 남으면 남은 실패를 사용자에게 가져간다.
+**완료 기준**: 마지막 `results-N.txt` 에 실패가 없고, `feedback-N.md` 의 테스트 수정과 `ruling-N.md` 마다 근거가 된 규칙 문장 번호나 spec 의 대목이 있다. feedback 으로 구현이 고쳐진 규칙 문장마다 그 뒤에 더한 테스트가 `coverage.md` 에 있고, 이 단계에서 design.md 가 바뀐 곳마다 `ruling-N.md` 가 있다. feedback 이 세 번 오간 뒤에도 실패가 남으면 남은 실패를 사용자에게 가져간다.
 
 ## 5. mutation 검사
 
