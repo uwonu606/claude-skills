@@ -11,7 +11,7 @@
 
 ## 실패를 받았을 때: feedback-N.md (4단계)
 
-먼저 실패한 테스트마다 기대값을 design.md 와 견준다. 기대값이 틀렸으면 테스트를 고치고 `feedback-N.md` 맨 위에 "테스트 수정" 과 근거를 적는다. 그 실패는 feedback 에서 뺀다.
+먼저 실패한 테스트마다 기대값을 design.md 와 견준다. 기대값이 틀렸으면 테스트를 고치고 `feedback-N.md` 맨 위에 "테스트 수정" 과 근거가 된 규칙 문장 번호를 적는다. 그 실패는 feedback 에서 뺀다.
 
 남은 실패마다 다섯 칸을 채운다.
 
@@ -25,7 +25,7 @@
 
 ## gaps-N.md 를 받았을 때 (5단계)
 
-빈 곳마다 기대값을 design.md 에서 다시 끌어낸다. 구현 agent 가 적은 값은 끌어낸 값과 견주는 데만 쓴다. 끌어낸 값으로 테스트를 더하고 `coverage.md` 에 "gap-N 반영" 으로 적는다. design.md 로 끌어낼 수 없으면 `gap-question-N.md` 로 설계 agent 에게 넘긴다.
+놓친 동작마다 기대값을 design.md 에서 다시 끌어낸다. 구현 agent 가 적은 값은 끌어낸 값과 견주는 데만 쓴다. 끌어낸 값으로 테스트를 더하고 `coverage.md` 에 "gap-N 반영" 으로 적는다. design.md 로 끌어낼 수 없으면 `gap-question-N.md` 로 설계 agent 에게 넘긴다.
 
 ## ruling-N.md 를 받았을 때 (4단계)
 
