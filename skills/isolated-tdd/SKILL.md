@@ -14,28 +14,30 @@ agent 넷은 서로의 산출물 가운데 아래 표의 것만 받는다. 구�
 |---|---|---|---|---|
 | 설계 | spec, 사용자의 답, `gap-question-N`, `dispute-N` | `design.md`, `review.md`, `ruling-N.md` | 구현 코드 | [`references/design-agent.md`](references/design-agent.md) |
 | 테스트 | spec, `design.md`, `results-N`, `review.md`, `gaps-N`, `ruling-N` | `<work>/acceptance/`, `coverage.md`, `feedback-N.md`, `dispute-N.md`, `gap-question-N.md` | 구현 코드 | [`references/test-agent.md`](references/test-agent.md) |
-| 구현 | spec, `design.md`, `feedback-N`, `ruling-N`, `survivors-N`, `quality-N` | 저장소의 구현과 unit test, `dispute-N.md`, `gaps-N.md`, `quality-reply-N.md` | `<work>/acceptance/` | [`references/impl-agent.md`](references/impl-agent.md) |
+| 구현 | spec, `design.md`, `feedback-N`, `ruling-N`, `survivors-N`, `quality-N` | 저장소의 구현과 unit test, `cycles.md`, `dispute-N.md`, `gaps-N.md`, `quality-reply-N.md` | `<work>/acceptance/` | [`references/impl-agent.md`](references/impl-agent.md) |
 | 품질 | `design.md`, 구현 코드, 저장소의 코드 기준, 복잡도 측정값, `quality-reply-N` | `quality-N.md` | 테스트 코드 | [`references/quality-agent.md`](references/quality-agent.md) |
 
-메인은 단계마다 subagent 하나를 새로 띄우고, 그 agent 의 역할 파일과 받는 것의 절대 경로, 열지 않는 경로를 넘긴다. 같은 agent 를 다시 부를 때는 SendMessage 로 이어 간다. md 로 된 산출물은 subagent 가 최종 답으로 돌려주고 메인이 `<work>/` 에 저장한다. subagent 의 보고 파일 쓰기는 harness 가 막는다. 코드와 테스트 파일은 subagent 가 직접 쓴다. 메인은 모든 산출물을 보므로 역할 파일이 agent 에게 맡긴 일(테스트, 구현, design.md 를 쓰고 고치기)을 하지 않는다. subagent 가 도구 권한이나 한도 때문에 자기 일을 끝내지 못하면 막힌 것을 사용자에게 가져간다.
+메인은 단계마다 subagent 하나를 새로 띄우고, 그 agent 의 역할 파일과 받는 것의 절대 경로, 돌려주는 것을 쓸 절대 경로, 열지 않는 경로를 넘긴다. 같은 agent 를 다시 부를 때는 SendMessage 로 이어 간다. 표의 돌려주는 것은 그 agent 가 정해진 경로에 직접 쓰고 고치며, 최종 답에는 쓴 경로를 적는다. 메인은 산출물을 옮겨 적지 않고, 다음 agent 에게도 내용 대신 경로를 넘긴다. 메인이 옮겨 적은 글은 줄고 바뀌는데, 그 글이 다음 판정의 기준이 되기 때문이다. 메인은 모든 산출물을 보므로 역할 파일이 agent 에게 맡긴 일(테스트, 구현, design.md 를 쓰고 고치기)을 하지 않는다. subagent 가 도구 권한이나 한도 때문에 자기 일을 끝내지 못하면 막힌 것을 사용자에게 가져간다.
 
 `<스킬>` 은 이 `SKILL.md` 가 있는 디렉토리의 절대 경로다. `<work>` 는 `${ISOLATED_TDD_HOME:-$HOME/isolated-tdd}/<slug>/` 를 펼친 절대 경로이고, `<slug>` 는 기능을 가리키는 짧은 이름이다. acceptance test 는 끝날 때까지 `<work>/acceptance/` 에 두고 메인이 저장소 코드에 대고 돌린다. 저장소 안에 두면 구현 agent 가 unit test 를 돌릴 때 같이 돌아 내용이 보인다.
+
+단계는 번호 순서로 한다. 메인은 단계가 끝날 때마다 그 단계의 완료 기준을 넘기는 것에 대 보고, 채워진 뒤에 다음 단계를 시작한다. 뒤 단계는 앞 단계가 넘긴 것을 받아 쓰기 때문이다. 채워지지 않았으면 그 단계에 적힌 대로 고칠 agent 에게 돌려보내거나 사용자에게 가져간다.
 
 ## 1. 설계
 
 **의도**: design.md 가 spec 의 규칙과 단서를 빠짐없이 규칙 문장과 예로 담고, spec 이 정하지 않은 interface 와 seam 과 spec 의 빈 곳이 사용자에게 확인됐다.
 
-설계 agent 가 design.md 초안과 사용자에게 물을 것(spec 이 정하지 않은 interface, seam 후보, 빈 곳마다 해석과 권하는 쪽)을 돌려준다. 메인은 물을 것을 한 메시지로 사용자에게 묻고, 답을 설계 agent 에게 넘겨 design.md 를 확정한다.
+설계 agent 가 design.md 초안을 쓰고 사용자에게 물을 것(spec 이 정하지 않은 interface, seam 후보, 빈 곳마다 해석과 권하는 쪽)을 돌려준다. 메인은 물을 것을 한 메시지로 사용자에게 묻고, 답을 설계 agent 에게 넘겨 design.md 를 확정한다.
 
 **넘기는 것**: `<work>/design.md`.
 
-**완료 기준**: spec 의 규칙과 단서마다 그것이 들어간 규칙 문장이 있고, spec 에서 끌어낼 수 없는 규칙 문장과 interface 마다 사용자의 어느 답에서 왔는지가 표시돼 있다. 규칙 문장마다 예가 있고, "확인된 seam" 절이 사용자의 답과 맞는다. 사용자의 답이 오기 전에는 2단계를 시작하지 않는다.
+**완료 기준**: spec 의 규칙과 단서마다 그것이 들어간 규칙 문장이 있고, spec 에서 끌어낼 수 없는 규칙 문장과 interface 마다 사용자의 어느 답에서 왔는지가 표시돼 있다. 규칙 문장마다 예가 있고, "확인된 seam" 절이 사용자의 답과 맞는다. 예가 없는 규칙 문장이 있으면 설계 agent 에게 돌려보낸다. 사용자의 답이 오기 전에는 2단계를 시작하지 않는다.
 
 ## 2. acceptance test
 
 **의도**: 규칙 문장마다 그것을 확인하는 acceptance test 가 있고, 기대값은 모두 design.md 에서 끌어낸 것이다.
 
-테스트 agent 가 테스트와 `coverage.md` 를 쓰고, 설계 agent 가 `review.md` 로 판정한다. `GAPS` 면 테스트 agent 가 고치고 설계 agent 가 다시 판정한다.
+테스트 agent 가 테스트와 `coverage.md` 를 쓰고, 설계 agent 가 `review.md` 로 판정한다. `GAPS` 면 지적이 테스트를 가리키면 테스트 agent 가, design.md 를 가리키면 설계 agent 가 고치고, 설계 agent 가 다시 판정한다.
 
 **넘기는 것**: `<work>/acceptance/`, `<work>/coverage.md`, `<work>/review.md`.
 
@@ -45,7 +47,7 @@ agent 넷은 서로의 산출물 가운데 아래 표의 것만 받는다. 구�
 
 **의도**: 구현이 확인된 seam 에서 실패하는 unit test 를 하나씩 보며 자랐다.
 
-**넘기는 것**: 저장소의 구현과 unit test, 구현 agent 가 돌려준 cycle 기록을 메인이 저장한 `<work>/cycles.md`.
+**넘기는 것**: 저장소의 구현과 unit test, `<work>/cycles.md`.
 
 **완료 기준**: unit test 가 모두 통과하고 확인된 seam 으로만 부른다. `cycles.md` 에서 구현을 고친 cycle 마다, 그 고침 전에 실패한 테스트 하나와 그 실패 결과가 적혀 있다. 이 순서를 어긴 cycle 은 구현을 되돌려 실패를 다시 만들지 않고, 어긴 대로 적어 사용자에게 가져간다.
 
@@ -73,7 +75,7 @@ agent 넷은 서로의 산출물 가운데 아래 표의 것만 받는다. 구�
 
 **의도**: 구현이 저장소의 코드 기준을 따르고, 그렇게 고치는 동안 바깥 동작은 바뀌지 않았다.
 
-품질 agent 가 `quality-N.md` 를 쓴다. 그 언어의 복잡도 측정 도구가 있으면 함수마다 잰 값을 같이 넘긴다. 구현 agent 가 고치고 `quality-reply-N.md` 를 쓰면, 메인이 4단계처럼 acceptance test 를 다시 돌리고 품질 agent 가 다시 본다. 다시 본 판정은 다음 번호의 `quality-N.md` 로 저장하고, `GAPS` 면 한 번 더 되풀이한다.
+품질 agent 가 `quality-N.md` 를 쓴다. 그 언어의 복잡도 측정 도구가 있으면 함수마다 잰 값을 같이 넘긴다. 구현 agent 가 고치고 `quality-reply-N.md` 를 쓰면, 메인이 4단계처럼 acceptance test 를 다시 돌리고 품질 agent 가 다시 본다. 다시 본 판정은 다음 번호의 `quality-N.md` 에 쓰고, `GAPS` 면 한 번 더 되풀이한다.
 
 **넘기는 것**: `quality-N.md`, `quality-reply-N.md`, 다시 돌린 결과.
 
