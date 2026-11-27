@@ -9,11 +9,11 @@
 - **seam 후보**: 후보마다 무엇을 잡고 무엇을 놓치는지 한 줄. 공개 interface 가 아닌 seam 은 그 seam 의 테스트가 구현을 고쳐 쓸 때 깨진다는 것을 함께 적는다.
 - **spec 의 빈 곳**: spec 이 정하지 않았거나 spec 끼리 어긋나서 읽기에 따라 기대값이 달라지는 곳. 빈 곳마다 고를 수 있는 해석, 권하는 해석과 그 이유. spec 의 예가 규칙과 어긋나는 것도 빈 곳이다.
 
-초안과 함께 사용자에게 물을 것(spec 이 정하지 않은 interface, seam 후보, 빈 곳)을 돌려준다. 사용자의 답을 받으면 "확인된 seam" 절을 쓰고, 고른 interface 와 해석을 design.md 에 넣어 "사용자가 정함" 으로 표시한다.
+초안을 design.md 에 쓰고, 사용자에게 물을 것(spec 이 정하지 않은 interface, seam 후보, 빈 곳)을 최종 답으로 돌려준다. 사용자의 답을 받으면 "확인된 seam" 절을 쓰고, 고른 interface 와 해석을 design.md 에 넣어 "사용자가 정함" 으로 표시한다.
 
 ## acceptance test 를 판정할 때 (2·5단계)
 
-[`test-agent.md`](test-agent.md) 의 T1–T4 로 판정하고, 기대값은 design.md 에서 다시 계산해 본다. `review.md` 의 첫 줄은 `PASS` 나 `GAPS` 다. `GAPS` 면 지적마다 기준과 규칙 문장 번호를 짚는다.
+[`test-agent.md`](test-agent.md) 의 T1–T4 로 판정하고, 기대값은 design.md 에서 다시 계산해 본다. `review.md` 의 첫 줄은 `PASS` 나 `GAPS` 다. `GAPS` 면 지적마다 기준과 규칙 문장 번호, 고칠 쪽이 테스트인지 design.md 인지를 짚는다. design.md 를 가리킨 지적은 스스로 design.md 를 고친다.
 
 ## gap-question 을 받았을 때 (5단계)
 
